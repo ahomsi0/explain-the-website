@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -8,71 +8,37 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 213 31% 91%;
-    --card: 222 47% 14%;
-    --card-foreground: 213 31% 91%;
-    --border: 217 33% 22%;
-    --input: 217 33% 22%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
+    --border: 0 0% 13%;
+    --input: 0 0% 13%;
     --primary: 263 70% 58%;
     --primary-foreground: 0 0% 100%;
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 55%;
-    --accent: 217 33% 18%;
-    --accent-foreground: 213 31% 91%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 45%;
     --ring: 263 70% 58%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   * { box-sizing: border-box; }
 
   body {
     font-family: "Inter", system-ui, sans-serif;
-    background-color: hsl(222 47% 9%);
-    color: hsl(213 31% 91%);
+    background-color: hsl(0 0% 4%);
+    color: hsl(0 0% 94%);
     @apply antialiased;
   }
 
   #root { @apply min-h-screen; }
 }
 
-@layer components {
-  .btn {
-    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
-           transition-all duration-150 cursor-pointer select-none;
-  }
-  .btn-primary {
-    @apply btn text-white bg-violet-600 hover:bg-violet-500 active:scale-95;
-  }
-  .btn-ghost {
-    @apply btn text-slate-400 hover:text-slate-200 hover:bg-white/5 active:scale-95;
-  }
-}
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spin-slow 1.4s linear infinite; }
 
-/* Hero background */
-.hero-bg {
-  background-color: hsl(222 47% 9%);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(124, 58, 237, 0.15) 0%, transparent 60%);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 60%, #93c5fd 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Step animation */
-@keyframes stepFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.step-item { animation: stepFadeIn 0.3s ease both; }
-
-/* Glowing divider */
-.glow-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent);
-}
+.fade-up { animation: fadeUp 0.4s ease both; }

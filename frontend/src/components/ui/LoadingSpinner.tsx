@@ -1,45 +1,47 @@
 import { useEffect, useState } from "react";
 
 const steps = [
-  { label: "Fetching page HTML",           delay: 0    },
-  { label: "Detecting tech stack",         delay: 700  },
-  { label: "Running SEO audit",            delay: 1400 },
+  { label: "Fetching page HTML",          delay: 0    },
+  { label: "Detecting tech stack",        delay: 700  },
+  { label: "Running SEO audit",          delay: 1400 },
   { label: "Analysing conversion signals", delay: 2100 },
-  { label: "Generating recommendations",  delay: 2800 },
+  { label: "Generating recommendations", delay: 2800 },
 ];
 
 export function LoadingSpinner({ url }: { url: string }) {
-  const [activeStep, setActiveStep] = useState(0);
+  const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const timers = steps.map((s, i) => setTimeout(() => setActiveStep(i), s.delay));
+    const timers = steps.map((s, i) => setTimeout(() => setActive(i), s.delay));
     return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center py-28 px-4 gap-9">
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 rounded-full border-4 border-slate-700" />
-        <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-violet-500 animate-spin-slow" />
-        <div className="absolute inset-2 rounded-full bg-slate-800 flex items-center justify-center text-lg">🔬</div>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 gap-8">
+      {/* Spinner */}
+      <div className="relative w-10 h-10">
+        <div className="absolute inset-0 rounded-full border-2 border-zinc-800" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-violet-500 animate-spin-slow" />
       </div>
 
       <div className="text-center">
-        <p className="text-base font-semibold text-slate-200">Analyzing website…</p>
-        <p className="text-sm text-slate-500 mt-1 max-w-sm truncate">{url}</p>
+        <p className="text-sm font-medium text-zinc-200">Analyzing</p>
+        <p className="text-xs text-zinc-600 mt-1 max-w-xs truncate">{url}</p>
       </div>
 
-      <div className="flex flex-col gap-3 min-w-[240px]">
+      <div className="flex flex-col gap-2.5 text-sm">
         {steps.map((step, i) => {
-          const done = i < activeStep, current = i === activeStep;
+          const done = i < active, current = i === active;
           return (
-            <div key={step.label} className="step-item flex items-center gap-3 text-sm" style={{ animationDelay: `${step.delay}ms` }}>
-              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs flex-shrink-0 transition-all duration-300 ${
-                done ? "bg-emerald-900/60 text-emerald-400" : current ? "bg-violet-900/60 text-violet-400" : "bg-slate-700/60 text-slate-600"
+            <div key={step.label} className="flex items-center gap-2.5">
+              <span className={`text-xs transition-colors ${
+                done ? "text-emerald-500" : current ? "text-violet-400" : "text-zinc-700"
               }`}>
-                {done ? "✓" : current ? <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse-soft" /> : "·"}
+                {done ? "✓" : current ? "›" : "·"}
               </span>
-              <span className={`transition-colors duration-300 ${done ? "text-slate-600 line-through" : current ? "text-slate-200 font-medium" : "text-slate-600"}`}>
+              <span className={`transition-colors ${
+                done ? "text-zinc-600" : current ? "text-zinc-300" : "text-zinc-700"
+              }`}>
                 {step.label}
               </span>
             </div>

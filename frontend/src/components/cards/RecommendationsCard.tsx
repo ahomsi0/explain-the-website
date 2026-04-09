@@ -1,21 +1,21 @@
 export function RecommendationsCard({ recommendations }: { recommendations: string[] }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/4 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-200">Recommendations</h3>
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Recommendations</p>
         {recommendations.length > 0 && (
-          <span className="text-xs text-slate-500">{recommendations.length} action{recommendations.length !== 1 ? "s" : ""}</span>
+          <span className="text-[11px] text-zinc-600">{recommendations.length} action{recommendations.length !== 1 ? "s" : ""}</span>
         )}
       </div>
 
       {recommendations.length === 0 ? (
-        <p className="text-sm text-slate-500">No recommendations at this time.</p>
+        <p className="text-xs text-zinc-600">No recommendations at this time.</p>
       ) : (
-        <ol className="space-y-0">
+        <ol>
           {recommendations.map((rec, i) => (
-            <li key={i} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
-              <span className="text-xs font-medium text-slate-600 w-4 shrink-0 mt-0.5">{i + 1}.</span>
-              <span className="text-sm text-slate-300 leading-relaxed">{rec}</span>
+            <li key={i} className="flex items-start gap-2.5 py-2 border-b border-zinc-800/60 last:border-0">
+              <span className="text-[11px] font-medium text-zinc-600 shrink-0 w-4 mt-0.5">{i + 1}.</span>
+              <span className="text-xs text-zinc-300 leading-relaxed">{rec}</span>
             </li>
           ))}
         </ol>

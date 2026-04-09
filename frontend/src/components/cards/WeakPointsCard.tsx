@@ -1,21 +1,21 @@
 export function WeakPointsCard({ weakPoints }: { weakPoints: string[] }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-white/4 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-200">Weak Points</h3>
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Weak Points</p>
         {weakPoints.length > 0 && (
-          <span className="text-xs text-slate-500">{weakPoints.length} issue{weakPoints.length !== 1 ? "s" : ""}</span>
+          <span className="text-[11px] text-zinc-600">{weakPoints.length} issue{weakPoints.length !== 1 ? "s" : ""}</span>
         )}
       </div>
 
       {weakPoints.length === 0 ? (
-        <p className="text-sm text-emerald-400">No significant weak points detected.</p>
+        <p className="text-xs text-emerald-400">No significant weak points detected.</p>
       ) : (
-        <ul className="space-y-0">
+        <ul>
           {weakPoints.map((point, i) => (
-            <li key={i} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
-              <span className="text-xs font-medium text-slate-600 w-4 shrink-0 mt-0.5">{i + 1}.</span>
-              <span className="text-sm text-slate-300 leading-relaxed">{point}</span>
+            <li key={i} className="flex items-start gap-2.5 py-2 border-b border-zinc-800/60 last:border-0">
+              <span className="text-[11px] font-medium text-zinc-600 shrink-0 w-4 mt-0.5">{i + 1}.</span>
+              <span className="text-xs text-zinc-300 leading-relaxed">{point}</span>
             </li>
           ))}
         </ul>
