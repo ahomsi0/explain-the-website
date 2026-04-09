@@ -39,7 +39,7 @@ var techPatterns = []techPattern{
 	{name: "BigCommerce", category: "ecommerce", confidence: "high",
 		patterns: []string{"bigcommerce.com", "bigcommercecdn.com"}},
 	{name: "Magento", category: "ecommerce", confidence: "high",
-		patterns: []string{"mage/", "magento", "Mage.Cookies"}},
+		patterns: []string{"magento", "mage.cookies", "x-magento-init", "mage-init", "mage/bootstrap"}},
 
 	// JS Frameworks
 	{name: "Next.js", category: "framework", confidence: "high",
@@ -111,11 +111,11 @@ var techPatterns = []techPattern{
 	{name: "Tailwind CSS", category: "framework", confidence: "medium",
 		patterns: []string{"tailwindcss", "cdn.tailwindcss.com"}},
 	{name: "Alpine.js", category: "framework", confidence: "high",
-		patterns: []string{"x-data=", "x-show=", "alpine.js", "alpinejs"}},
+		patterns: []string{"alpine.js", "alpinejs", "cdn.jsdelivr.net/npm/alpinejs", "x-cloak"}},
 	{name: "HTMX", category: "framework", confidence: "high",
-		patterns: []string{"hx-get=", "hx-post=", "htmx.org", "hx-trigger="}},
+		patterns: []string{"htmx.org", "htmx.min.js", "unpkg.com/htmx"}},
 	{name: "Segment", category: "analytics", confidence: "high",
-		patterns: []string{"cdn.segment.com", "analytics.js", "segment.io"}},
+		patterns: []string{"cdn.segment.com", "segment.io", "analytics.identify(", "analytics.track("}},
 	{name: "Mixpanel", category: "analytics", confidence: "high",
 		patterns: []string{"cdn.mxpnl.com", "mixpanel.com", "mixpanel.init"}},
 	{name: "Klaviyo", category: "analytics", confidence: "high",
