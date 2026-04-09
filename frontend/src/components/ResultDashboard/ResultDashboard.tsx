@@ -95,7 +95,8 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
           <Metric label="Issues"        value={issueCount}
             valueClass={issueCount === 0 ? "text-emerald-400" : issueCount <= 3 ? "text-amber-400" : "text-red-400"} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="Page Weight"   value={result.overview.pageLoadHint.charAt(0).toUpperCase() + result.overview.pageLoadHint.slice(1)} />
+          <Metric label="Page Weight"   value={result.overview.pageLoadHint.charAt(0).toUpperCase() + result.overview.pageLoadHint.slice(1)}
+            valueClass={result.overview.pageLoadHint === "lightweight" ? "text-emerald-400" : result.overview.pageLoadHint === "medium" ? "text-amber-400" : "text-red-400"} />
           {result.pageStats && (
             <>
               <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
