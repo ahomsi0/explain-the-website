@@ -142,14 +142,3 @@ npm run build
 # Output in frontend/dist/
 ```
 
----
-
-## Extending the Project
-
-The codebase is structured to make these additions straightforward:
-
-- **AI summaries** — call an LLM API in `parser/parser.go` after the existing analysis
-- **Screenshot analysis** — add a `screenshotter` package alongside `fetcher`
-- **Multi-page crawling** — extend `fetcher` to follow internal links
-- **Saved reports** — add a `storage` package and a database layer; the `AnalysisResult` model is already serialisation-ready
-- **Authentication** — add middleware in `server/server.go`
