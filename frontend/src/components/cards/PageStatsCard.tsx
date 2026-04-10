@@ -89,7 +89,7 @@ export function PageStatsCard({ pageStats }: { pageStats: PageStats }) {
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-      <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider mb-4">Page Stats</p>
+      <p className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-4">Page Stats</p>
 
       <div className="grid grid-cols-3 gap-x-4 gap-y-5">
         {structureMetrics.map((m) => (
@@ -98,7 +98,7 @@ export function PageStatsCard({ pageStats }: { pageStats: PageStats }) {
       </div>
 
       <div className="mt-5 pt-4 border-t border-zinc-800">
-        <p className="text-[10px] font-medium text-zinc-700 uppercase tracking-wider mb-3">Performance</p>
+        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-3">Performance</p>
         <div className="grid grid-cols-3 gap-x-4 gap-y-5">
           {performanceMetrics.map((m) => (
             <Metric key={m.label} {...m} />

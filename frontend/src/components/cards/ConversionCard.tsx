@@ -17,7 +17,7 @@ export function ConversionCard({ ux }: { ux: UXResult }) {
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider">Conversion & UX</p>
+        <p className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Conversion & UX</p>
         <span className={`font-semibold text-sm ${score >= 70 ? "text-emerald-400" : score >= 40 ? "text-amber-400" : "text-red-400"}`}>
           {score}<span className="text-zinc-600 font-normal text-xs">/100</span>
         </span>
@@ -31,7 +31,7 @@ export function ConversionCard({ ux }: { ux: UXResult }) {
       <Row label="Mobile Ready"     present={ux.mobileReady}      detail={ux.mobileReady      ? "Viewport tag present" : "Missing"} />
 
       <div className="mt-3 pt-3 border-t border-zinc-800">
-        <p className="text-[10px] font-medium text-zinc-700 uppercase tracking-wider mb-1">Trust & Engagement</p>
+        <p className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider mb-1">Trust & Engagement</p>
         <Row label="Cookie Banner"    present={ux.hasCookieBanner}     detail={ux.hasCookieBanner     ? "Consent UI detected"      : "None found"} />
         <Row label="Live Chat"        present={ux.hasLiveChat}         detail={ux.hasLiveChat         ? "Widget detected"          : "None found"} />
         <Row label="Video Content"    present={ux.hasVideoContent}     detail={ux.hasVideoContent     ? "Video detected"           : "None found"} />

@@ -13,7 +13,7 @@ export function OverviewCard({ overview, url, fetchedAt }: {
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-      <p className="text-[11px] font-medium text-zinc-600 uppercase tracking-wider mb-3">Overview</p>
+      <p className="text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">Overview</p>
 
       <div className="flex items-start gap-3">
         {overview.favicon ? (
