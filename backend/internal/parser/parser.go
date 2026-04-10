@@ -124,7 +124,8 @@ func computePageStats(doc *html.Node, sourceURL, rawHTML string) model.PageStats
 						stats.RenderBlockingScripts++
 					}
 					srcLower := strings.ToLower(src)
-					if strings.Contains(srcLower, "kit.fontawesome.com") {
+					if strings.Contains(srcLower, "kit.fontawesome.com") ||
+						strings.Contains(srcLower, "use.fontawesome.com") {
 						stats.FontCount++
 					}
 				}
@@ -140,9 +141,14 @@ func computePageStats(doc *html.Node, sourceURL, rawHTML string) model.PageStats
 					strings.Contains(hrefLower, "fonts.googleapis.com") ||
 					strings.Contains(hrefLower, "fonts.bunny.net") ||
 					strings.Contains(hrefLower, "use.typekit.net") ||
-					strings.Contains(hrefLower, "use.fontawesome.com") {
+					strings.Contains(hrefLower, "use.fontawesome.com") ||
+					strings.Contains(hrefLower, "fonts.apple.com") {
 					stats.FontCount++
 				}
+
+			case "video":
+				// count <video> tags — note: JS-injected videos won't be counted
+				stats.VideoCount++
 
 			case "h1":
 				stats.H1Count++
@@ -195,6 +201,28 @@ func computePageStats(doc *html.Node, sourceURL, rawHTML string) model.PageStats
 			ratio = 100
 		}
 		stats.ContentToCodeRatio = ratio
+	}
+
+	// @font-face in raw CSS/HTML (catches Apple SF, custom self-hosted fonts)
+	lowerHTML := strings.ToLower(rawHTML)
+	fontFaceCount := strings.Count(lowerHTML, "@font-face")
+	if fontFaceCount > 0 && stats.FontCount == 0 {
+		// Deduplicate: @font-face blocks often repeat per weight; cap at a sane number
+		stats.FontCount = fontFaceCount
+		if stats.FontCount > 10 {
+			stats.FontCount = 10
+		}
+	}
+
+	// Video detection via raw HTML (catches <video> tags missed by JS rendering)
+	if stats.VideoCount == 0 {
+		if strings.Contains(lowerHTML, "<video") ||
+			strings.Contains(lowerHTML, "youtube.com/embed") ||
+			strings.Contains(lowerHTML, "youtube-nocookie.com/embed") ||
+			strings.Contains(lowerHTML, "player.vimeo.com") ||
+			strings.Contains(lowerHTML, "fast.wistia.com") {
+			stats.VideoCount = 1
+		}
 	}
 
 	return stats

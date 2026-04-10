@@ -11,13 +11,15 @@ type techPattern struct {
 	category   string
 	confidence string
 	patterns   []string
+	// requireAll: if true ALL patterns must match (AND logic) instead of any one
+	requireAll bool
 }
 
 // techPatterns lists all detectable technologies with their HTML fingerprints.
 var techPatterns = []techPattern{
-	// CMS
+	// CMS — use path/attribute signals only, never plain words
 	{name: "WordPress", category: "cms", confidence: "high",
-		patterns: []string{"/wp-content/", "/wp-includes/", "wp-json", "wordpress"}},
+		patterns: []string{"/wp-content/", "/wp-includes/", "wp-json/wp/"}},
 	{name: "Drupal", category: "cms", confidence: "high",
 		patterns: []string{"drupal.js", "/sites/default/files/", "Drupal.settings"}},
 	{name: "Joomla", category: "cms", confidence: "high",
@@ -33,9 +35,10 @@ var techPatterns = []techPattern{
 
 	// E-commerce
 	{name: "Shopify", category: "ecommerce", confidence: "high",
-		patterns: []string{"cdn.shopify.com", "shopify.theme", "myshopify.com"}},
+		patterns: []string{"cdn.shopify.com", "shopify.theme", "myshopify.com", "shopify-analytics"}},
 	{name: "WooCommerce", category: "ecommerce", confidence: "high",
-		patterns: []string{"woocommerce", "/wc-api/", "wc_add_to_cart"}},
+		// Require both a WooCommerce-specific JS signal AND a WordPress path to avoid false positives
+		patterns: []string{"woocommerce", "/wc-api/", "wc_add_to_cart", "wc-block"}},
 	{name: "BigCommerce", category: "ecommerce", confidence: "high",
 		patterns: []string{"bigcommerce.com", "bigcommercecdn.com"}},
 	{name: "Magento", category: "ecommerce", confidence: "high",
@@ -52,10 +55,14 @@ var techPatterns = []techPattern{
 		patterns: []string{"vue.min.js", "vue.runtime", "__vue__", "vue@"}},
 	{name: "Angular", category: "framework", confidence: "medium",
 		patterns: []string{"ng-version", "angular.min.js", "angular/core"}},
-	{name: "Svelte", category: "framework", confidence: "medium",
+	{name: "Svelte", category: "framework", confidence: "high",
 		patterns: []string{"__svelte", "svelte/"}},
 	{name: "Gatsby", category: "framework", confidence: "high",
 		patterns: []string{"___gatsby", "gatsby-chunk"}},
+	{name: "Remix", category: "framework", confidence: "high",
+		patterns: []string{"__remixContext", "remix-run"}},
+	{name: "Astro", category: "framework", confidence: "high",
+		patterns: []string{"astro-island", "astro-slot"}},
 
 	// Analytics & Marketing
 	{name: "Google Analytics 4", category: "analytics", confidence: "high",
@@ -63,67 +70,65 @@ var techPatterns = []techPattern{
 	{name: "Google Analytics (UA)", category: "analytics", confidence: "high",
 		patterns: []string{"google-analytics.com/analytics.js", "gtag('config', 'UA-", `gtag("config", "UA-`}},
 	{name: "Google Tag Manager", category: "analytics", confidence: "high",
-		patterns: []string{"googletagmanager.com/gtm.js", "GTM-", "googletagmanager.com/ns.html"}},
+		patterns: []string{"googletagmanager.com/gtm.js", "googletagmanager.com/ns.html"}},
 	{name: "Meta Pixel", category: "analytics", confidence: "high",
 		patterns: []string{"connect.facebook.net/en_US/fbevents.js", "fbq('init'", `fbq("init"`}},
 	{name: "HubSpot", category: "analytics", confidence: "high",
-		patterns: []string{"js.hs-scripts.com", "hubspot.com", "_hsp"}},
+		patterns: []string{"js.hs-scripts.com", "js.hsforms.net", "js.hscta.net"}},
 	{name: "Hotjar", category: "analytics", confidence: "high",
-		patterns: []string{"static.hotjar.com", "hjid", "hjsv"}},
+		patterns: []string{"static.hotjar.com", "script.hotjar.com"}},
 	{name: "Intercom", category: "analytics", confidence: "high",
 		patterns: []string{"widget.intercom.io", "intercomSettings"}},
+	{name: "Segment", category: "analytics", confidence: "high",
+		patterns: []string{"cdn.segment.com", "segment.io", "analytics.identify(", "analytics.track("}},
+	{name: "Mixpanel", category: "analytics", confidence: "high",
+		patterns: []string{"cdn.mxpnl.com", "mixpanel.com/libs", "mixpanel.init"}},
+	{name: "Klaviyo", category: "analytics", confidence: "high",
+		patterns: []string{"static.klaviyo.com", "klaviyo.com/media"}},
+	{name: "Salesforce", category: "analytics", confidence: "high",
+		patterns: []string{"pardot.com", "sfdcstatic.com", "force.com/resource"}},
+	{name: "Zendesk", category: "analytics", confidence: "high",
+		patterns: []string{"zdassets.com", "zendeskcdn.com", "static.zdassets.com"}},
+	{name: "Stripe", category: "analytics", confidence: "high",
+		patterns: []string{"js.stripe.com", "stripe.network", "stripe-js"}},
+	{name: "Crisp Chat", category: "analytics", confidence: "high",
+		patterns: []string{"client.crisp.chat", "crisp.chat/js"}},
+	{name: "Tawk.to", category: "analytics", confidence: "high",
+		patterns: []string{"embed.tawk.to", "tawk_api"}},
 
 	// CDN / Infrastructure
 	{name: "Cloudflare", category: "cdn", confidence: "medium",
-		patterns: []string{"__cf_bm", "cloudflare.com/cdn-cgi", "cf-ray", "cloudflareinsights.com"}},
+		patterns: []string{"__cf_bm", "cloudflare.com/cdn-cgi", "cloudflareinsights.com"}},
 	{name: "Amazon CloudFront", category: "cdn", confidence: "high",
-		patterns: []string{"cloudfront.net", "x-amz-cf-id", "x-amz-cf-pop"}},
-	{name: "AWS", category: "cdn", confidence: "medium",
-		patterns: []string{"amazonaws.com", "s3.amazonaws.com", "aws-amplify"}},
+		patterns: []string{"cloudfront.net"}},
+	{name: "Akamai", category: "cdn", confidence: "high",
+		patterns: []string{"akamaihd.net", "akamaized.net", "edgesuite.net"}},
+	{name: "Fastly", category: "cdn", confidence: "high",
+		patterns: []string{"fastly.net", "fastlylb.net"}},
+	{name: "Vercel", category: "cdn", confidence: "high",
+		patterns: []string{"vercel.app", "_vercel"}},
+	{name: "Netlify", category: "cdn", confidence: "high",
+		patterns: []string{"netlify.app", "netlify.com/js"}},
 	{name: "jsDelivr", category: "cdn", confidence: "medium",
 		patterns: []string{"cdn.jsdelivr.net"}},
-	{name: "unpkg", category: "cdn", confidence: "medium",
-		patterns: []string{"unpkg.com/"}},
+
+	// UI Frameworks
 	{name: "Bootstrap", category: "framework", confidence: "medium",
 		patterns: []string{"bootstrap.min.css", "bootstrap.min.js", "bootstrap@"}},
 	{name: "jQuery", category: "framework", confidence: "medium",
 		patterns: []string{"jquery.min.js", "jquery-", "/jquery/"}},
-
-	// Proprietary / large platform signals
-	{name: "Amazon (Proprietary)", category: "framework", confidence: "high",
-		patterns: []string{"images-amazon.com", "media-amazon.com", "fls-na.amazon.com", "amazon-adsystem.com", "ssl-images-amazon.com"}},
-	{name: "YouTube / Google Video", category: "framework", confidence: "high",
-		patterns: []string{"youtube.com/embed", "ytimg.com", "youtube-nocookie.com"}},
-	{name: "Salesforce", category: "analytics", confidence: "high",
-		patterns: []string{"salesforce.com", "pardot.com", "force.com", "sfdcstatic.com"}},
-	{name: "Zendesk", category: "analytics", confidence: "high",
-		patterns: []string{"zendesk.com", "zdassets.com", "zendeskcdn.com"}},
-	{name: "Stripe", category: "analytics", confidence: "high",
-		patterns: []string{"js.stripe.com", "stripe.network", "stripe-js"}},
-	{name: "Akamai", category: "cdn", confidence: "high",
-		patterns: []string{"akamaihd.net", "akamai.net", "akamaized.net", "edgesuite.net"}},
-	{name: "Fastly", category: "cdn", confidence: "high",
-		patterns: []string{"fastly.net", "fastlylb.net"}},
-	{name: "Vercel", category: "cdn", confidence: "high",
-		patterns: []string{"vercel.app", "vercel-cdn", "_vercel"}},
-	{name: "Netlify", category: "cdn", confidence: "high",
-		patterns: []string{"netlify.app", "netlify.com"}},
 	{name: "Tailwind CSS", category: "framework", confidence: "medium",
 		patterns: []string{"tailwindcss", "cdn.tailwindcss.com"}},
 	{name: "Alpine.js", category: "framework", confidence: "high",
-		patterns: []string{"alpine.js", "alpinejs", "cdn.jsdelivr.net/npm/alpinejs", "x-cloak"}},
+		patterns: []string{"alpinejs", "cdn.jsdelivr.net/npm/alpinejs", "x-cloak"}},
 	{name: "HTMX", category: "framework", confidence: "high",
-		patterns: []string{"htmx.org", "htmx.min.js", "unpkg.com/htmx"}},
-	{name: "Segment", category: "analytics", confidence: "high",
-		patterns: []string{"cdn.segment.com", "segment.io", "analytics.identify(", "analytics.track("}},
-	{name: "Mixpanel", category: "analytics", confidence: "high",
-		patterns: []string{"cdn.mxpnl.com", "mixpanel.com", "mixpanel.init"}},
-	{name: "Klaviyo", category: "analytics", confidence: "high",
-		patterns: []string{"klaviyo.com", "static.klaviyo.com"}},
-	{name: "Crisp Chat", category: "analytics", confidence: "high",
-		patterns: []string{"client.crisp.chat", "crisp.chat"}},
-	{name: "Tawk.to", category: "analytics", confidence: "high",
-		patterns: []string{"tawk.to", "embed.tawk.to"}},
+		patterns: []string{"htmx.org", "unpkg.com/htmx"}},
+
+	// Media / Embeds — correct category
+	{name: "YouTube Embed", category: "media", confidence: "high",
+		patterns: []string{"youtube.com/embed", "youtube-nocookie.com/embed"}},
+	{name: "Vimeo Embed", category: "media", confidence: "high",
+		patterns: []string{"player.vimeo.com/video", "vimeo.com/video"}},
 }
 
 // detectTech performs substring matching on the raw (lowercased) HTML string.
@@ -136,16 +141,30 @@ func detectTech(rawHTML string) []model.TechItem {
 		if seen[p.name] {
 			continue
 		}
-		for _, pat := range p.patterns {
-			if strings.Contains(lower, strings.ToLower(pat)) {
-				found = append(found, model.TechItem{
-					Name:       p.name,
-					Category:   p.category,
-					Confidence: p.confidence,
-				})
-				seen[p.name] = true
-				break
+		matched := false
+		if p.requireAll {
+			matched = true
+			for _, pat := range p.patterns {
+				if !strings.Contains(lower, strings.ToLower(pat)) {
+					matched = false
+					break
+				}
 			}
+		} else {
+			for _, pat := range p.patterns {
+				if strings.Contains(lower, strings.ToLower(pat)) {
+					matched = true
+					break
+				}
+			}
+		}
+		if matched {
+			found = append(found, model.TechItem{
+				Name:       p.name,
+				Category:   p.category,
+				Confidence: p.confidence,
+			})
+			seen[p.name] = true
 		}
 	}
 	return found

@@ -1,4 +1,4 @@
-export type TechCategory = "cms" | "framework" | "analytics" | "cdn" | "builder" | "ecommerce";
+export type TechCategory = "cms" | "framework" | "analytics" | "cdn" | "builder" | "ecommerce" | "media";
 export type Confidence = "high" | "medium" | "low";
 export type SEOStatus = "pass" | "warning" | "fail";
 export type AnalysisStatus = "idle" | "loading" | "error" | "success";
@@ -61,6 +61,7 @@ export interface PageStats {
   fontCount: number;
   renderBlockingScripts: number;
   contentToCodeRatio: number;
+  videoCount: number;
 }
 
 export interface ContentStats {

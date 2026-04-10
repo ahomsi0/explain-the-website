@@ -63,6 +63,7 @@ export const mockAnalysisResult: AnalysisResult = {
     fontCount: 2,
     renderBlockingScripts: 1,
     contentToCodeRatio: 18,
+    videoCount: 0,
   },
   contentStats: {
     topKeywords: ["widgets", "shipping", "store", "products", "returns", "order", "quality", "shop"],

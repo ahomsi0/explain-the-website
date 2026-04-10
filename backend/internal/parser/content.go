@@ -55,7 +55,8 @@ func analyzeContent(text string) model.ContentStats {
 	// ── Keyword frequency ────────────────────────────────────────────────────
 	freq := make(map[string]int)
 	for _, w := range nonAlpha.Split(strings.ToLower(text), -1) {
-		if len(w) >= 4 && !stopWords[w] {
+		// Require 5+ chars to filter UI fragments like "espa", "fran", "nav"
+		if len(w) >= 5 && !stopWords[w] {
 			freq[w]++
 		}
 	}

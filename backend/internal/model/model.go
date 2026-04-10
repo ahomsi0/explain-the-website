@@ -63,6 +63,7 @@ type PageStats struct {
 	FontCount             int `json:"fontCount"`
 	RenderBlockingScripts int `json:"renderBlockingScripts"`
 	ContentToCodeRatio    int `json:"contentToCodeRatio"` // 0–100 percent
+	VideoCount            int `json:"videoCount"`
 }
 
 // ContentStats holds content quality and readability metrics.
