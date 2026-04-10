@@ -94,6 +94,11 @@ var liveChatSignals = []string{
 	"chat-widget", "chat_widget", "livechat-widget",
 	"chat-bubble", "chatbubble", "chat-launcher",
 	"__lc", "lc_chat", "lc2",
+	// Custom/embedded chatbot patterns
+	"chatbot", "chat-bot", "chat_bot",
+	"togglechatbot", "chatbot-frame", "chatbot-container",
+	"chatbot-button", "chatbot-toggle", "chatbot-icon",
+	"openchat", "open-chat", "showchat",
 }
 
 var phoneRegex = regexp.MustCompile(`\+?[\d][\d\s\-\(\)]{7,}`)
