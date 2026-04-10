@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strings"
 
 	"github.com/ahomsi/explain-website/internal/config"
 	"github.com/ahomsi/explain-website/internal/handler"
@@ -54,9 +55,31 @@ func recoveryMiddleware(next http.Handler) http.Handler {
 }
 
 // corsMiddleware adds the necessary headers to allow the frontend to call the API.
+// ALLOWED_ORIGIN can be:
+//   - "*"                    → allow all origins (open API)
+//   - "https://foo.com"      → single origin
+//   - "https://a.com,https://b.com" → comma-separated list of allowed origins
 func corsMiddleware(allowedOrigin string, next http.Handler) http.Handler {
+	allowed := strings.Split(allowedOrigin, ",")
+	for i, o := range allowed {
+		allowed[i] = strings.TrimSpace(o)
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+		origin := r.Header.Get("Origin")
+
+		if allowedOrigin == "*" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		} else {
+			for _, o := range allowed {
+				if o == origin {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					w.Header().Set("Vary", "Origin")
+					break
+				}
+			}
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
