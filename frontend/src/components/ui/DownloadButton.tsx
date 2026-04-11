@@ -215,14 +215,18 @@ function buildPDF(result: AnalysisResult) {
 
   // Summary stats as a plain 2-column list
   const scoreColor = (s: number) => s >= 80 ? GREEN : s >= 50 ? AMBER : RED;
+  const imp = result.firstImpression;
+  const impColor = imp.score >= 8 ? GREEN : imp.score >= 6 ? AMBER : imp.score >= 4 ? [251,146,60] as const : RED;
   const summaryRows: { label: string; value: string; color: readonly [number,number,number] }[] = [
-    { label: "SEO Score",       value: `${seoScore}/100`,             color: scoreColor(seoScore) },
-    { label: "UX Score",        value: `${uxScore}/100`,              color: scoreColor(uxScore)  },
-    { label: "Technologies",    value: `${techCount}`,                color: TEXT },
-    { label: "Issues Found",    value: `${issueCount}`,               color: issueCount === 0 ? GREEN : issueCount <= 3 ? AMBER : RED },
-    { label: "Words on Page",   value: ps.wordCount.toLocaleString(), color: TEXT },
-    { label: "Reading Level",   value: cs ? cs.readingLevel.charAt(0).toUpperCase() + cs.readingLevel.slice(1) : "—", color: cs?.readingLevel === "simple" ? GREEN : cs?.readingLevel === "moderate" ? AMBER : RED },
-    { label: "Recommendations", value: `${recCount}`,                 color: TEXT },
+    { label: "SEO Score",        value: `${seoScore}/100`,             color: scoreColor(seoScore) },
+    { label: "UX Score",         value: `${uxScore}/100`,              color: scoreColor(uxScore)  },
+    { label: "Conversion Score", value: `${result.conversionScores.overall}/100`, color: scoreColor(result.conversionScores.overall) },
+    { label: "First Impression", value: `${imp.score}/10 — ${imp.label}`,         color: impColor },
+    { label: "Technologies",     value: `${techCount}`,                color: TEXT },
+    { label: "Issues Found",     value: `${issueCount}`,               color: issueCount === 0 ? GREEN : issueCount <= 3 ? AMBER : RED },
+    { label: "Words on Page",    value: ps.wordCount.toLocaleString(), color: TEXT },
+    { label: "Reading Level",    value: cs ? cs.readingLevel.charAt(0).toUpperCase() + cs.readingLevel.slice(1) : "—", color: cs?.readingLevel === "simple" ? GREEN : cs?.readingLevel === "moderate" ? AMBER : RED },
+    { label: "Recommendations",  value: `${recCount}`,                 color: TEXT },
   ];
   for (const row of summaryRows) {
     doc.setFontSize(7.5); doc.setFont("helvetica", "normal");
@@ -253,10 +257,10 @@ function buildPDF(result: AnalysisResult) {
     doc.setFontSize(8.5); doc.setTextColor(...rgb(MUTED));
     doc.text("No technologies detected.", M, y); y += 10;
   } else {
-    const catOrder  = ["cms", "ecommerce", "builder", "framework", "analytics", "cdn"] as const;
+    const catOrder  = ["cms", "ecommerce", "builder", "framework", "analytics", "cdn", "media"] as const;
     const catLabels: Record<string, string> = {
       cms: "CMS", ecommerce: "E-commerce", builder: "Builder",
-      framework: "Framework", analytics: "Analytics", cdn: "CDN",
+      framework: "Framework", analytics: "Analytics", cdn: "CDN", media: "Media",
     };
     const grouped: Record<string, typeof result.techStack> = {};
     for (const t of result.techStack) (grouped[t.category] ??= []).push(t);
@@ -283,6 +287,66 @@ function buildPDF(result: AnalysisResult) {
       },
     });
     y = lastY(doc) + 10;
+  }
+
+  // ── Site Intelligence ──────────────────────────────────────────────────────
+  need(40);
+  section("Site Intelligence");
+  {
+    const intent = result.intent;
+    const VIOLET = [167, 139, 250] as [number, number, number]; // violet-400
+    doc.setFontSize(7.5); doc.setFont("helvetica", "bold"); doc.setTextColor(...VIOLET);
+    doc.text(san(intent.label), M, y); y += 5.5;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(DIM));
+    const descLines = doc.splitTextToSize(san(intent.description), CW) as string[];
+    doc.text(descLines, M, y); y += descLines.length * 4.5 + 5;
+
+    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(AMBER));
+    doc.text("BIGGEST OPPORTUNITY", M, y); y += 4.5;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(TEXT));
+    const oppLines = doc.splitTextToSize(san(result.biggestOpportunity || "—"), CW) as string[];
+    doc.text(oppLines, M, y); y += oppLines.length * 4.5 + 5;
+
+    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(MUTED));
+    doc.text("MARKET POSITIONING", M, y); y += 4.5;
+    doc.setFont("helvetica", "italic"); doc.setTextColor(...rgb(DIM));
+    const ciLines = doc.splitTextToSize(san(result.competitorInsight || "—"), CW) as string[];
+    doc.text(ciLines, M, y); y += ciLines.length * 4.5 + 8;
+  }
+
+  // ── Customer View ──────────────────────────────────────────────────────────
+  need(40);
+  section("Customer View");
+  {
+    const cv = result.customerView;
+    const trustC = cv.trustLevel === "strong" ? GREEN : cv.trustLevel === "moderate" ? AMBER : RED;
+    doc.setFontSize(7.5); doc.setFont("helvetica", "bold");
+    doc.setTextColor(...rgb(MUTED)); doc.text("Trust Level: ", M, y);
+    const tlW = doc.getTextWidth("Trust Level: ");
+    doc.setTextColor(...rgb(trustC));
+    doc.text(cv.trustLevel.charAt(0).toUpperCase() + cv.trustLevel.slice(1), M + tlW, y);
+    const offerX = M + tlW + 28;
+    doc.setTextColor(...rgb(MUTED)); doc.text("Offer Clear: ", offerX, y);
+    const ocW = doc.getTextWidth("Offer Clear: ");
+    doc.setTextColor(...rgb(cv.offerClear ? GREEN : RED)); doc.text(cv.offerClear ? "Yes" : "No", offerX + ocW, y);
+    const ctaX = offerX + ocW + 18;
+    doc.setTextColor(...rgb(MUTED)); doc.text("CTA Visible: ", ctaX, y);
+    const ctaW = doc.getTextWidth("CTA Visible: ");
+    doc.setTextColor(...rgb(cv.ctaClear ? GREEN : RED)); doc.text(cv.ctaClear ? "Yes" : "No", ctaX + ctaW, y);
+    y += 7;
+
+    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(MUTED));
+    doc.text("AS A VISITOR:", M, y); y += 5;
+    for (const stmt of cv.statements) {
+      need(8);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(DIM));
+      doc.text("›", M, y);
+      doc.setTextColor(...rgb(TEXT));
+      const lines = doc.splitTextToSize(san(stmt), CW - 6) as string[];
+      doc.text(lines, M + 5, y);
+      y += lines.length * 4.5 + 2;
+    }
+    y += 4;
   }
 
   // ── SEO Audit ──────────────────────────────────────────────────────────────
@@ -316,6 +380,38 @@ function buildPDF(result: AnalysisResult) {
       didParseCell(data) {
         if (data.column.index === 1 && data.section === "body") {
           data.cell.styles.textColor = statusColor(result.seoChecks[data.row.index]?.status ?? "fail");
+        }
+      },
+    });
+    y = lastY(doc) + 10;
+  }
+
+  // ── Conversion Scores ──────────────────────────────────────────────────────
+  need(50);
+  section("Conversion Scores");
+  {
+    const cs2 = result.conversionScores;
+    const scoreC = (n: number) => n >= 70 ? GREEN : n >= 45 ? AMBER : RED;
+    const p0 = doc.getNumberOfPages();
+    ztable(p0, {
+      startY: y,
+      head: [["Dimension", "Score", "Notes"]],
+      body: [
+        ["Overall",      `${cs2.overall}/100`,     "—"],
+        ["Clarity",      `${cs2.clarity}/100`,     san(cs2.clarityNote)],
+        ["Trust",        `${cs2.trust}/100`,       san(cs2.trustNote)],
+        ["CTA Strength", `${cs2.ctaStrength}/100`, san(cs2.ctaNote)],
+        ["Friction",     `${cs2.friction}/100`,    san(cs2.frictionNote)],
+      ],
+      columnStyles: {
+        0: { cellWidth: 36, fontStyle: "bold" },
+        1: { cellWidth: 24, halign: "center", fontStyle: "bold" },
+        2: { cellWidth: CW - 36 - 24, textColor: rgb(DIM) },
+      },
+      didParseCell(data) {
+        if (data.column.index === 1 && data.section === "body") {
+          const scores = [cs2.overall, cs2.clarity, cs2.trust, cs2.ctaStrength, cs2.friction];
+          data.cell.styles.textColor = scoreC(scores[data.row.index] ?? 0);
         }
       },
     });
@@ -440,6 +536,27 @@ function buildPDF(result: AnalysisResult) {
     }
   }
 
+  // ── Prioritized Issues ─────────────────────────────────────────────────────
+  if (result.prioritizedIssues?.length) {
+    need(30);
+    section("What's Hurting You Most");
+    const p0 = doc.getNumberOfPages();
+    ztable(p0, {
+      startY: y,
+      head: [["#", "Issue", "Impact", "Why"]],
+      body: result.prioritizedIssues.map(i => [
+        `#${i.rank}`, san(i.issue), san(i.impact), san(i.why),
+      ]),
+      columnStyles: {
+        0: { cellWidth: 10, halign: "center", fontStyle: "bold", textColor: rgb(MUTED) },
+        1: { cellWidth: 50, fontStyle: "bold" },
+        2: { cellWidth: 28, halign: "center" },
+        3: { cellWidth: CW - 10 - 50 - 28, textColor: rgb(DIM) },
+      },
+    });
+    y = lastY(doc) + 10;
+  }
+
   // ── Weak Points ────────────────────────────────────────────────────────────
   need(20);
   section("Weak Points");
@@ -487,6 +604,22 @@ function buildPDF(result: AnalysisResult) {
       } else {
         y += lines.length * 5.5 + 6;
       }
+    }
+  }
+
+  // ── Website Summary (ELI5) ────────────────────────────────────────────────
+  if (result.eli5?.length) {
+    need(20);
+    section("Website Summary (Plain Language)");
+    for (const item of result.eli5) {
+      need(14);
+      doc.setFontSize(7.5); doc.setFont("helvetica", "bold");
+      doc.setTextColor(...rgb(TEXT));
+      const titleLines = doc.splitTextToSize(san(item.technical), CW - 4) as string[];
+      doc.text(titleLines, M + 4, y); y += titleLines.length * 4.5 + 1;
+      doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(DIM));
+      const simpleLines = doc.splitTextToSize(san(item.simple), CW - 8) as string[];
+      doc.text(simpleLines, M + 8, y); y += simpleLines.length * 4.5 + 5;
     }
   }
 

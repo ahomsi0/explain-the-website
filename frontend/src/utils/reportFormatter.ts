@@ -2,45 +2,103 @@ import type { AnalysisResult } from "../types/analysis";
 
 export function formatReport(result: AnalysisResult): string {
   const divider = "─".repeat(60);
-  const date = new Date(result.fetchedAt).toLocaleString();
+  const date    = new Date(result.fetchedAt).toLocaleString();
+  const ux      = result.ux;
 
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  const yn  = (b: boolean) => b ? "Yes" : "No";
+  const pct = (n: number)  => `${n}/100`;
+
+  // ── Sections ──────────────────────────────────────────────────────────────────
   const techList = result.techStack.length
-    ? result.techStack.map((t) => `  • ${t.name} (${t.category}, ${t.confidence} confidence)`).join("\n")
+    ? result.techStack.map((t) => `  • ${t.name} (${t.category}, ${t.confidence})`).join("\n")
     : "  No technologies detected";
 
   const seoSummary = result.seoChecks
     .map((c) => `  [${c.status.toUpperCase().padEnd(7)}] ${c.label}: ${c.detail}`)
     .join("\n");
 
-  const ux = result.ux;
   const uxSummary = [
-    `  Call-to-Action:      ${ux.hasCTA ? `Yes (${ux.ctaCount} detected)` : "Not detected"}`,
-    `  Lead Capture Form:   ${ux.hasForms ? `Yes (${ux.formCount} form${ux.formCount !== 1 ? "s" : ""})` : "Not detected"}`,
-    `  Social Proof:        ${ux.hasSocialProof ? "Detected" : "Not detected"}`,
-    `  Trust Signals:       ${ux.hasTrustSignals ? "Detected" : "Not detected"}`,
-    `  Contact Info:        ${ux.hasContactInfo ? "Found" : "Not found"}`,
-    `  Mobile Responsive:   ${ux.mobileReady ? "Yes" : "No"}`,
+    `  Call-to-Action:    ${ux.hasCTA    ? `Yes — ${ux.ctaCount} detected`           : "Not detected"}`,
+    `  Lead Capture Form: ${ux.hasForms  ? `Yes — ${ux.formCount} form(s)`           : "Not detected"}`,
+    `  Social Proof:      ${yn(ux.hasSocialProof)}`,
+    `  Trust Signals:     ${yn(ux.hasTrustSignals)}`,
+    `  Contact Info:      ${yn(ux.hasContactInfo)}`,
+    `  Mobile Ready:      ${yn(ux.mobileReady)}`,
+    `  Cookie Banner:     ${yn(ux.hasCookieBanner)}`,
+    `  Live Chat:         ${yn(ux.hasLiveChat)}`,
+    `  Video Content:     ${yn(ux.hasVideoContent)}`,
+    `  Newsletter Signup: ${yn(ux.hasNewsletterSignup)}`,
+    `  Privacy Policy:    ${yn(ux.hasPrivacyPolicy)}`,
   ].join("\n");
 
+  const convScores = result.conversionScores ? [
+    `  Overall:      ${pct(result.conversionScores.overall)}`,
+    `  Clarity:      ${pct(result.conversionScores.clarity)}  — ${result.conversionScores.clarityNote}`,
+    `  Trust:        ${pct(result.conversionScores.trust)}  — ${result.conversionScores.trustNote}`,
+    `  CTA Strength: ${pct(result.conversionScores.ctaStrength)}  — ${result.conversionScores.ctaNote}`,
+    `  Friction:     ${pct(result.conversionScores.friction)}  — ${result.conversionScores.frictionNote}`,
+  ].join("\n") : "  No conversion scores available";
+
+  const intentSec = result.intent ? [
+    `  Type:        ${result.intent.label}`,
+    `  Description: ${result.intent.description}`,
+  ].join("\n") : "  No intent data";
+
+  const customerView = result.customerView ? [
+    `  Trust Level:  ${result.customerView.trustLevel}`,
+    `  Offer Clear:  ${yn(result.customerView.offerClear)}`,
+    `  CTA Visible:  ${yn(result.customerView.ctaClear)}`,
+    `  As a visitor:`,
+    ...result.customerView.statements.map((s) => `    › ${s}`),
+  ].join("\n") : "  No customer view data";
+
+  const prioritized = result.prioritizedIssues?.length
+    ? result.prioritizedIssues.map((i) =>
+        `  #${i.rank} [${i.impact}] ${i.issue}\n      Why: ${i.why}`
+      ).join("\n")
+    : "  No prioritized issues";
+
   const weak = result.weakPoints.length
-    ? result.weakPoints.map((w) => `  • ${w}`).join("\n")
+    ? result.weakPoints.map((w, i) => `  ${i + 1}. ${w}`).join("\n")
     : "  No significant weak points identified";
 
   const recs = result.recommendations.length
     ? result.recommendations.map((r, i) => `  ${i + 1}. ${r}`).join("\n")
     : "  No recommendations at this time";
 
+  const eli5 = result.eli5?.length
+    ? result.eli5.map((e) => `  ${e.technical}\n    ${e.simple}`).join("\n\n")
+    : "  No summary available";
+
+  const biggestOpp  = result.biggestOpportunity  || "—";
+  const compInsight = result.competitorInsight    || "—";
+  const impression  = result.firstImpression
+    ? `${result.firstImpression.score}/10 — ${result.firstImpression.label}: ${result.firstImpression.explanation}`
+    : "—";
+
   return `WEBSITE ANALYSIS REPORT
 ${divider}
-URL:       ${result.url}
-Analyzed:  ${date}
+URL:            ${result.url}
+Analyzed:       ${date}
+First Impression: ${impression}
 ${divider}
 
 OVERVIEW
   Title:       ${result.overview.title || "(none)"}
   Description: ${result.overview.description || "(none)"}
   Language:    ${result.overview.language || "unknown"}
-  Page size:   ${result.overview.pageLoadHint}
+  Page Weight: ${result.overview.pageLoadHint}
+
+${divider}
+SITE INTELLIGENCE
+${intentSec}
+  Biggest Opportunity: ${biggestOpp}
+  Market Positioning:  ${compInsight}
+
+${divider}
+CUSTOMER VIEW
+${customerView}
 
 ${divider}
 DETECTED TECH STACK
@@ -51,8 +109,16 @@ SEO AUDIT
 ${seoSummary}
 
 ${divider}
-CONVERSION / UX SIGNALS
+CONVERSION SCORES
+${convScores}
+
+${divider}
+CONVERSION & UX SIGNALS
 ${uxSummary}
+
+${divider}
+PRIORITIZED ISSUES
+${prioritized}
 
 ${divider}
 WEAK POINTS
@@ -61,6 +127,10 @@ ${weak}
 ${divider}
 RECOMMENDATIONS
 ${recs}
+
+${divider}
+WEBSITE SUMMARY (PLAIN LANGUAGE)
+${eli5}
 
 ${divider}
 Generated by Explain This Website
