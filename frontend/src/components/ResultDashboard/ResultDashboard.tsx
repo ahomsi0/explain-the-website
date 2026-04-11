@@ -127,32 +127,32 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
       {/* ── Main content ── */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
 
-        {/* Left col: SEO + What's Hurting You + Weak Points */}
+        {/* Left col — Context: what the site is and how it feels to visit */}
+        <div className="flex flex-col gap-4">
+          <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
+          <InsightCard
+            intent={result.intent}
+            biggestOpportunity={result.biggestOpportunity}
+            competitorInsight={result.competitorInsight}
+          />
+          <CustomerViewCard customerView={result.customerView} />
+        </div>
+
+        {/* Middle col — Problems: what's wrong, ranked by impact */}
         <div className="flex flex-col gap-4">
           <SeoAuditCard seoChecks={result.seoChecks} />
           <PrioritizedIssuesCard issues={result.prioritizedIssues} />
           <WeakPointsCard weakPoints={result.weakPoints} />
         </div>
 
-        {/* Middle col: Site Intelligence + Overview + Tech + Conversion */}
+        {/* Right col — Details & Actions: scores, tech, content, and fixes */}
         <div className="flex flex-col gap-4">
-          <InsightCard
-            intent={result.intent}
-            biggestOpportunity={result.biggestOpportunity}
-            competitorInsight={result.competitorInsight}
-          />
-          <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
-          <TechStackCard techStack={result.techStack} />
-          <ConversionCard ux={result.ux} />
-        </div>
-
-        {/* Right col: Customer View + Conversion Scores + ELI5 + Stats + Recommendations */}
-        <div className="flex flex-col gap-4">
-          <CustomerViewCard customerView={result.customerView} />
           <ConversionScoreCard scores={result.conversionScores} />
-          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
+          <ConversionCard ux={result.ux} />
+          <TechStackCard techStack={result.techStack} />
           {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
           {result.contentStats && <ContentCard contentStats={result.contentStats} />}
+          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
           <RecommendationsCard recommendations={result.recommendations} />
         </div>
 

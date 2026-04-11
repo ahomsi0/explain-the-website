@@ -10,162 +10,233 @@ import (
 // ── Intent detection ──────────────────────────────────────────────────────────
 
 // inferIntent classifies the website's primary purpose from page signals.
+// Each category requires multiple *distinct* signals to avoid false positives
+// from generic words (e.g. "product", "store", "get started") that appear on
+// almost every site.
 func inferIntent(overview model.Overview, tech []model.TechItem, ux model.UXResult, stats model.PageStats, rawHTML string) model.IntentSummary {
 	lower := strings.ToLower(rawHTML)
-	combined := strings.ToLower(overview.Title + " " + overview.Description)
+	titleLower := strings.ToLower(overview.Title)
+	descLower := strings.ToLower(overview.Description)
 
 	hasEcommerceTech := hasTechCat(tech, "ecommerce")
-	hasFramework := hasTechCat(tech, "framework")
 
-	// E-commerce
+	// ── E-commerce ────────────────────────────────────────────────────────────
+	// Requires platform tech OR at least two explicit cart/purchase mechanics.
 	ecom := 0
 	if hasEcommerceTech {
+		ecom += 5 // Shopify / WooCommerce / Magento etc. is definitive
+	}
+	if anyIn(lower, "add to cart", "add to bag", "remove from cart") {
+		ecom += 4 // cart mechanics are unambiguous
+	}
+	if anyIn(lower, "proceed to checkout", "go to checkout", "view cart", "shopping cart") {
 		ecom += 3
 	}
-	if anyIn(lower, "add to cart", "add to bag", "checkout", "shopping cart", "buy now", "purchase") {
-		ecom += 2
+	if anyIn(lower, "buy now", "shop now", "order now") && anyIn(lower, "price", "shipping", "delivery") {
+		ecom += 2 // purchase CTA + fulfilment language together
 	}
-	if anyIn(combined, "shop", "store", "product", "buy", "order") {
-		ecom++
-	}
-	if ecom >= 3 {
+	if ecom >= 5 {
 		return model.IntentSummary{
 			Category:    "ecommerce",
 			Label:       "E-commerce Store",
-			Description: "This appears to be an e-commerce store focused on selling products directly to customers.",
+			Description: "This appears to be an e-commerce store — it has cart mechanics and/or a recognised e-commerce platform.",
 		}
 	}
 
-	// SaaS / Web App
+	// ── SaaS / Web App ────────────────────────────────────────────────────────
+	// Requires at least two of: trial language, pricing tiers, app/dashboard signals.
 	saas := 0
-	if anyIn(combined, "free trial", "sign up", "signup", "dashboard", "pricing", "platform", "software") {
-		saas += 2
+	if anyIn(lower, "free trial", "start your free trial", "try for free", "14-day", "30-day trial") {
+		saas += 4 // trial language is a strong SaaS signal
 	}
-	if anyIn(lower, "free trial", "start for free", "get started", "sign up free", "create account") {
-		saas += 2
+	if anyIn(lower, "per month", "per user", "per seat", "billed annually", "monthly plan", "annual plan") {
+		saas += 4 // subscription pricing is highly distinctive
 	}
-	if hasFramework && !hasEcommerceTech {
-		saas++
+	if anyIn(lower, "sign up free", "create your account", "start for free") && anyIn(titleLower+descLower, "platform", "software", "app", "tool", "suite") {
+		saas += 3 // free signup + software product language
 	}
-	if ux.HasForms && ux.CTACount >= 2 {
-		saas++
+	if anyIn(lower, "dashboard", "workspace", "integrations", "api access") && hasTechCat(tech, "framework") {
+		saas += 2 // app-like features with modern stack
 	}
-	if saas >= 3 {
+	if saas >= 5 {
 		return model.IntentSummary{
 			Category:    "saas",
 			Label:       "SaaS / Web App",
-			Description: "This looks like a SaaS product or web application targeting users who want to sign up or start a trial.",
+			Description: "This looks like a SaaS product — it shows subscription pricing, trial offers, or app-specific language.",
 		}
 	}
 
-	// Portfolio
+	// ── Portfolio / Showcase ──────────────────────────────────────────────────
+	// Requires personal ownership signals, not just the word "portfolio" in a nav link.
 	portfolio := 0
-	if anyIn(combined, "portfolio", "my work", "hire me", "case study", "projects") {
+	if anyIn(titleLower+descLower, "portfolio", "my work", "hire me") {
+		portfolio += 4 // portfolio in title/meta is a strong ownership signal
+	}
+	if anyIn(lower, "i'm a ", "i am a ", "my name is", "hire me", "available for") &&
+		anyIn(lower, "designer", "developer", "photographer", "illustrator", "freelancer", "creative") {
+		portfolio += 4 // first-person + creative role
+	}
+	if anyIn(lower, "case study", "case studies", "my projects", "selected work", "recent work") {
 		portfolio += 2
 	}
-	if anyIn(lower, "portfolio", "my work", "hire me", "case study", "about me", "i'm a", "i am a") {
-		portfolio += 2
-	}
-	if stats.InternalLinks < 12 && stats.WordCount < 1200 {
-		portfolio++
-	}
-	if portfolio >= 2 {
+	if portfolio >= 4 {
 		return model.IntentSummary{
 			Category:    "portfolio",
 			Label:       "Portfolio / Showcase",
-			Description: "This appears to be a personal portfolio or showcase site, likely aimed at attracting clients or employers.",
+			Description: "This appears to be a personal portfolio — it uses first-person ownership language and presents creative or professional work.",
 		}
 	}
 
-	// Blog / Content site
+	// ── Blog / Content site ───────────────────────────────────────────────────
+	// Requires content publication structure, not just a long page.
 	blog := 0
-	if stats.WordCount > 1800 {
-		blog++
+	if anyIn(lower, "posted on", "published on", "published:", "written by", "author:", "by the editors") {
+		blog += 4 // publication metadata is unambiguous
 	}
-	if stats.H2Count+stats.H3Count > 8 {
-		blog++
+	if anyIn(lower, "<time", "datetime=", "article:published_time", "datePublished") {
+		blog += 3 // semantic article date markup
 	}
-	if anyIn(lower, "read more", "latest post", "recent article", "subscribe", "author", "published on", "comment") {
-		blog += 2
+	if anyIn(lower, "comments (", "leave a comment", "reply to", "subscribe to our newsletter") &&
+		stats.WordCount > 800 {
+		blog += 3 // comment/subscribe patterns with real content
 	}
-	if stats.ExternalLinks > 8 {
-		blog++
+	if anyIn(lower, "next post", "previous post", "related articles", "more from this author") {
+		blog += 3 // article navigation patterns
 	}
-	if blog >= 3 {
+	if blog >= 4 {
 		return model.IntentSummary{
 			Category:    "blog",
 			Label:       "Blog / Content Site",
-			Description: "This looks like a content-driven site or blog aimed at informing or educating its audience.",
+			Description: "This looks like a blog or content publication — it has article metadata, publication dates, or reader engagement patterns.",
 		}
 	}
 
-	// Landing page
+	// ── Landing page ──────────────────────────────────────────────────────────
+	// Requires narrow focus: minimal nav, short content, and explicit conversion pressure.
 	landing := 0
-	if ux.CTACount >= 3 {
-		landing++
+	hasUrgency := anyIn(lower, "limited time", "offer expires", "only left", "spots remaining", "claim your", "act now")
+	hasNarrowNav := stats.InternalLinks <= 4
+	hasShortContent := stats.WordCount < 500
+	hasManyCtAs := ux.CTACount >= 4
+
+	if hasUrgency {
+		landing += 4
 	}
-	if stats.WordCount < 700 {
-		landing++
-	}
-	if stats.InternalLinks < 8 {
-		landing++
-	}
-	if anyIn(lower, "limited time", "exclusive offer", "join now", "get access", "claim your") {
+	if hasNarrowNav && hasShortContent && hasManyCtAs {
+		landing += 4 // all three structural signals together
+	} else if hasNarrowNav && hasShortContent {
 		landing += 2
 	}
-	if landing >= 3 {
+	if anyIn(lower, "100% free", "no credit card required", "no credit card", "cancel anytime", "money-back guarantee") &&
+		hasManyCtAs {
+		landing += 3 // conversion assurance language + aggressive CTAs
+	}
+	if landing >= 4 {
 		return model.IntentSummary{
 			Category:    "landing",
 			Label:       "Landing Page",
-			Description: "This appears to be a focused landing page designed to drive a single conversion action.",
+			Description: "This looks like a focused landing page — minimal navigation, short content, and strong conversion pressure.",
 		}
 	}
 
-	// Service business
+	// ── Service business ─────────────────────────────────────────────────────
+	// Requires service offering + contact/booking signals together.
 	service := 0
-	if ux.HasContactInfo {
-		service++
+	hasServiceLanguage := anyIn(lower, "our services", "what we offer", "what we do", "how we help",
+		"get a quote", "request a quote", "book a ", "schedule a ", "free consultation", "call us today")
+	hasServiceTitle := anyIn(titleLower+descLower, "agency", "studio", "consulting", "consultancy",
+		"services", "solutions", "firm", "freelance", "specialist")
+
+	if hasServiceLanguage {
+		service += 3
 	}
-	if ux.HasForms {
-		service++
+	if hasServiceTitle {
+		service += 3
 	}
-	if anyIn(lower, "get a quote", "book a", "schedule a", "consultation", "appointment", "our services", "call us") {
-		service += 2
+	if ux.HasForms && ux.HasContactInfo {
+		service += 2 // contact + form together indicates lead capture
 	}
-	if anyIn(combined, "service", "agency", "studio", "consultant", "freelance") {
-		service += 2
+	if anyIn(lower, "years of experience", "years experience", "trusted by", "clients include", "our clients") {
+		service += 2 // credibility language common on service sites
 	}
-	if service >= 3 {
+	if service >= 5 {
 		return model.IntentSummary{
 			Category:    "service",
 			Label:       "Service Business",
-			Description: "This looks like a service-oriented business website aimed at attracting and converting local or online clients.",
+			Description: "This looks like a service business — it describes specific services, has contact or booking mechanisms, and targets potential clients.",
 		}
 	}
 
-	// Corporate / Enterprise
+	// ── Corporate / Enterprise ────────────────────────────────────────────────
+	// Requires institutional breadth signals, not just a big site.
 	corporate := 0
-	if stats.InternalLinks > 20 {
-		corporate++
+	corporateStructure := 0
+	if anyIn(lower, "about us", "our story", "our history", "who we are") {
+		corporateStructure++
 	}
-	if anyIn(lower, "about us", "our team", "careers", "investors", "press release", "annual report") {
+	if anyIn(lower, "careers", "join our team", "job openings", "we're hiring") {
+		corporateStructure++
+	}
+	if anyIn(lower, "press", "newsroom", "media kit", "press release", "in the news") {
+		corporateStructure++
+	}
+	if anyIn(lower, "investors", "investor relations", "annual report", "shareholder") {
+		corporateStructure++
+	}
+	if corporateStructure >= 2 {
+		corporate += corporateStructure * 2 // each department is a strong signal
+	}
+	if anyIn(titleLower+descLower, "inc", "corp", "ltd", "llc", "group", "holdings", "enterprise", "global") {
 		corporate += 2
 	}
-	if anyIn(combined, "enterprise", "corporation", "group", "holdings", "global") {
-		corporate += 2
+	if stats.InternalLinks > 25 && stats.WordCount > 1000 {
+		corporate++ // large informational site
 	}
-	if corporate >= 2 {
+	if corporate >= 5 {
 		return model.IntentSummary{
 			Category:    "corporate",
 			Label:       "Corporate / Business",
-			Description: "This appears to be a corporate or established business site focused on brand presence and information.",
+			Description: "This appears to be a corporate website — it has institutional sections like About, Careers, Press, or Investor Relations.",
 		}
 	}
 
-	return model.IntentSummary{
-		Category:    "general",
-		Label:       "General Website",
-		Description: "This appears to be a general informational website. Defining a clearer purpose would help both visitors and search engines.",
+	// ── News / Media ──────────────────────────────────────────────────────────
+	if hasTechCat(tech, "media") && stats.ExternalLinks > 10 && stats.H2Count > 5 {
+		return model.IntentSummary{
+			Category:    "media",
+			Label:       "News / Media Site",
+			Description: "This appears to be a news or media site — it has media embeds, many outbound links, and a multi-headline structure.",
+		}
+	}
+
+	// ── Fallback: infer from strongest available signal ───────────────────────
+	// Rather than returning a vague "general website", make a best-effort
+	// inference based on what IS present.
+	switch {
+	case ux.HasCTA && ux.HasForms && ux.HasContactInfo:
+		return model.IntentSummary{
+			Category:    "service",
+			Label:       "Service / Business Website",
+			Description: "This looks like a business website with contact and lead-capture elements, though its specific focus isn't immediately obvious from the page signals.",
+		}
+	case stats.WordCount > 1500 && stats.H2Count > 4:
+		return model.IntentSummary{
+			Category:    "blog",
+			Label:       "Informational / Content Site",
+			Description: "This appears to be a content-heavy informational site, though it doesn't show the specific patterns of a blog or editorial publication.",
+		}
+	case ux.HasCTA && ux.CTACount >= 2:
+		return model.IntentSummary{
+			Category:    "landing",
+			Label:       "Marketing / Promotional Site",
+			Description: "This page appears promotional in nature — it focuses on driving action rather than providing deep informational content.",
+		}
+	default:
+		return model.IntentSummary{
+			Category:    "general",
+			Label:       "General Website",
+			Description: "The page doesn't show strong signals for a specific site type. Clearer purpose and audience signals would help both visitors and search engines.",
+		}
 	}
 }
 
