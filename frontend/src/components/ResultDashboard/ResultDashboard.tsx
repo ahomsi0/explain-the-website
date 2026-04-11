@@ -141,15 +141,14 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
         <div className="flex flex-col gap-3">
           <ColHeader label="Site Profile" description="What this site is and who it's for" />
           <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
+          {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
+          {result.contentStats && <ContentCard contentStats={result.contentStats} />}
           <InsightCard
             intent={result.intent}
             biggestOpportunity={result.biggestOpportunity}
             competitorInsight={result.competitorInsight}
           />
           <CustomerViewCard customerView={result.customerView} />
-          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
-          {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
-          {result.contentStats && <ContentCard contentStats={result.contentStats} />}
         </div>
 
         {/* ── Col 2: Performance ── */}
@@ -164,6 +163,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
         {/* ── Col 3: Action Plan ── */}
         <div className="flex flex-col gap-3">
           <ColHeader label="Action Plan" description="What's broken and how to fix it" />
+          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
           <PrioritizedIssuesCard issues={result.prioritizedIssues} />
           <WeakPointsCard weakPoints={result.weakPoints} />
           <RecommendationsCard recommendations={result.recommendations} />
