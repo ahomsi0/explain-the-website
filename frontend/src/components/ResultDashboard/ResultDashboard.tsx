@@ -147,6 +147,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
             competitorInsight={result.competitorInsight}
           />
           <CustomerViewCard customerView={result.customerView} />
+          <TechStackCard techStack={result.techStack} />
           {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
         </div>
 
@@ -156,9 +157,6 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
           <ConversionScoreCard scores={result.conversionScores} />
           <SeoAuditCard seoChecks={result.seoChecks} />
           <ConversionCard ux={result.ux} />
-          <TechStackCard techStack={result.techStack} />
-          {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
-          {result.contentStats && <ContentCard contentStats={result.contentStats} />}
         </div>
 
         {/* ── Col 3: Action Plan ── */}
@@ -167,6 +165,8 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
           <PrioritizedIssuesCard issues={result.prioritizedIssues} />
           <WeakPointsCard weakPoints={result.weakPoints} />
           <RecommendationsCard recommendations={result.recommendations} />
+          {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
+          {result.contentStats && <ContentCard contentStats={result.contentStats} />}
         </div>
 
       </main>
