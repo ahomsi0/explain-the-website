@@ -127,7 +127,7 @@ function buildPDF(result: AnalysisResult) {
     doc.text(`${n} / ${total}`, W - M, H - 7, { align: "right" });
   }
 
-  function section(title: string, gap = 7) {
+  function section(title: string, gap = 5) {
     need(14);
     doc.setFontSize(7);
     doc.setFont("helvetica", "bold");
@@ -146,13 +146,13 @@ function buildPDF(result: AnalysisResult) {
       headStyles: {
         fillColor: rgb(BG), textColor: rgb(DIM),
         fontSize: 7, fontStyle: "bold",
-        cellPadding: { top: 4, bottom: 4, left: 6, right: 6 },
+        cellPadding: { top: 3, bottom: 3, left: 6, right: 6 },
         overflow: "linebreak",
       },
       bodyStyles: {
         fillColor: rgb(CARD), textColor: rgb(TEXT),
         fontSize: 8, lineColor: rgb(BORDER), lineWidth: 0.2,
-        cellPadding: { top: 5, bottom: 5, left: 6, right: 6 },
+        cellPadding: { top: 4, bottom: 4, left: 6, right: 6 },
         overflow: "linebreak",
       },
       alternateRowStyles: { fillColor: rgb(CARD2) },
@@ -286,7 +286,7 @@ function buildPDF(result: AnalysisResult) {
         }
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── Site Intelligence ──────────────────────────────────────────────────────
@@ -299,19 +299,19 @@ function buildPDF(result: AnalysisResult) {
     doc.text(san(intent.label), M, y); y += 5.5;
     doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(DIM));
     const descLines = doc.splitTextToSize(san(intent.description), CW) as string[];
-    doc.text(descLines, M, y); y += descLines.length * 4.5 + 5;
+    doc.text(descLines, M, y); y += descLines.length * 4.5 + 4;
 
     doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(AMBER));
-    doc.text("BIGGEST OPPORTUNITY", M, y); y += 4.5;
+    doc.text("BIGGEST OPPORTUNITY", M, y); y += 4;
     doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(TEXT));
     const oppLines = doc.splitTextToSize(san(result.biggestOpportunity || "—"), CW) as string[];
-    doc.text(oppLines, M, y); y += oppLines.length * 4.5 + 5;
+    doc.text(oppLines, M, y); y += oppLines.length * 4.5 + 4;
 
     doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(MUTED));
-    doc.text("MARKET POSITIONING", M, y); y += 4.5;
+    doc.text("MARKET POSITIONING", M, y); y += 4;
     doc.setFont("helvetica", "italic"); doc.setTextColor(...rgb(DIM));
     const ciLines = doc.splitTextToSize(san(result.competitorInsight || "—"), CW) as string[];
-    doc.text(ciLines, M, y); y += ciLines.length * 4.5 + 8;
+    doc.text(ciLines, M, y); y += ciLines.length * 4.5 + 5;
   }
 
   // ── Customer View ──────────────────────────────────────────────────────────
@@ -333,24 +333,24 @@ function buildPDF(result: AnalysisResult) {
     doc.setTextColor(...rgb(MUTED)); doc.text("CTA Visible: ", ctaX, y);
     const ctaW = doc.getTextWidth("CTA Visible: ");
     doc.setTextColor(...rgb(cv.ctaClear ? GREEN : RED)); doc.text(cv.ctaClear ? "Yes" : "No", ctaX + ctaW, y);
-    y += 7;
+    y += 5;
 
     doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(...rgb(MUTED));
-    doc.text("AS A VISITOR:", M, y); y += 5;
+    doc.text("AS A VISITOR:", M, y); y += 4;
     for (const stmt of cv.statements) {
-      need(8);
+      need(7);
       doc.setFont("helvetica", "normal"); doc.setTextColor(...rgb(DIM));
       doc.text("›", M, y);
       doc.setTextColor(...rgb(TEXT));
       const lines = doc.splitTextToSize(san(stmt), CW - 6) as string[];
       doc.text(lines, M + 5, y);
-      y += lines.length * 4.5 + 2;
+      y += lines.length * 4.5 + 1.5;
     }
-    y += 4;
+    y += 3;
   }
 
   // ── SEO Audit ──────────────────────────────────────────────────────────────
-  need(50);
+  need(30);
   section("SEO Audit");
 
   // Score line
@@ -383,11 +383,11 @@ function buildPDF(result: AnalysisResult) {
         }
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── Conversion Scores ──────────────────────────────────────────────────────
-  need(50);
+  need(30);
   section("Conversion Scores");
   {
     const cs2 = result.conversionScores;
@@ -415,11 +415,11 @@ function buildPDF(result: AnalysisResult) {
         }
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── UX Signals ─────────────────────────────────────────────────────────────
-  need(50);
+  need(30);
   section("Conversion & UX Signals");
 
   const uxScoreColor = uxScore >= 80 ? GREEN : uxScore >= 50 ? AMBER : RED;
@@ -463,11 +463,11 @@ function buildPDF(result: AnalysisResult) {
         }
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── Page Stats ─────────────────────────────────────────────────────────────
-  need(50);
+  need(30);
   section("Page Statistics");
   {
     const p0 = doc.getNumberOfPages();
@@ -506,7 +506,7 @@ function buildPDF(result: AnalysisResult) {
         }
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── Content Analysis ───────────────────────────────────────────────────────
@@ -554,7 +554,7 @@ function buildPDF(result: AnalysisResult) {
         3: { cellWidth: CW - 10 - 50 - 28, textColor: rgb(DIM) },
       },
     });
-    y = lastY(doc) + 10;
+    y = lastY(doc) + 6;
   }
 
   // ── Weak Points ────────────────────────────────────────────────────────────
