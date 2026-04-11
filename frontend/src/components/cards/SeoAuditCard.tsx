@@ -78,7 +78,7 @@ export function SeoAuditCard({ seoChecks }: { seoChecks: SEOCheck[] }) {
         />
       </div>
 
-      <div className="max-h-72 overflow-y-auto scrollbar-none">{seoChecks.map((c) => <CheckRow key={c.id} check={c} />)}</div>
+      <div>{seoChecks.map((c) => <CheckRow key={c.id} check={c} />)}</div>
     </div>
   );
 }

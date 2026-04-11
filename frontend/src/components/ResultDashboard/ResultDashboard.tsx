@@ -127,7 +127,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
       {/* ── Main content ── */}
       <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
 
-        {/* Left col — Context: what the site is and how it feels to visit */}
+        {/* Left col — Identity: what this site is and who it's for */}
         <div className="flex flex-col gap-3">
           <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
           <InsightCard
@@ -136,22 +136,22 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
             competitorInsight={result.competitorInsight}
           />
           <CustomerViewCard customerView={result.customerView} />
-          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
         </div>
 
-        {/* Middle col — Problems: what's wrong, ranked by impact */}
+        {/* Middle col — Performance: how well it scores across key dimensions */}
         <div className="flex flex-col gap-3">
+          <ConversionScoreCard scores={result.conversionScores} />
           <SeoAuditCard seoChecks={result.seoChecks} />
+          <ConversionCard ux={result.ux} />
+        </div>
+
+        {/* Right col — Issues & Actions: what's broken and how to fix it */}
+        <div className="flex flex-col gap-3">
           <PrioritizedIssuesCard issues={result.prioritizedIssues} />
           <WeakPointsCard weakPoints={result.weakPoints} />
           <RecommendationsCard recommendations={result.recommendations} />
-        </div>
-
-        {/* Right col — Scores, tech & content details */}
-        <div className="flex flex-col gap-3">
-          <ConversionScoreCard scores={result.conversionScores} />
-          <ConversionCard ux={result.ux} />
           <TechStackCard techStack={result.techStack} />
+          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
           {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
           {result.contentStats && <ContentCard contentStats={result.contentStats} />}
         </div>
