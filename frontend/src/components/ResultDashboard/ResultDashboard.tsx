@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { LogoMark } from "../ui/Logo";
 import type { AnalysisResult } from "../../types/analysis";
@@ -16,6 +17,8 @@ import { PrioritizedIssuesCard } from "../cards/PrioritizedIssuesCard";
 import { ELI5Card }              from "../cards/ELI5Card";
 import { CopyButton }            from "../ui/CopyButton";
 import { DownloadButton }        from "../ui/DownloadButton";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 function computeScores(result: AnalysisResult) {
   const pass     = result.seoChecks.filter((c) => c.status === "pass").length;
@@ -45,7 +48,44 @@ function Metric({ label, value, valueClass = "text-zinc-100" }: {
   );
 }
 
+// ── Tab definitions ───────────────────────────────────────────────────────────
+
+type TabId = "overview" | "audit" | "issues";
+
+const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+  {
+    id: "overview",
+    label: "Overview",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+    ),
+  },
+  {
+    id: "audit",
+    label: "Audit",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
+  },
+  {
+    id: "issues",
+    label: "Issues & Fixes",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+    ),
+  },
+];
+
+// ── Main component ────────────────────────────────────────────────────────────
+
 export function ResultDashboard({ result, onReset }: { result: AnalysisResult; onReset: () => void }) {
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
   const { seoScore, uxScore } = computeScores(result);
   const issueCount = result.weakPoints.length;
   const hostname = (() => { try { return new URL(result.url).hostname; } catch { return result.url; } })();
@@ -90,22 +130,22 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
       {/* ── Metrics strip ── */}
       <div className="border-b border-zinc-800 bg-zinc-900/40">
         <div className="max-w-[1600px] mx-auto px-4 py-4 flex items-center gap-5 sm:gap-8 overflow-x-auto scrollbar-none">
-          <Metric label="SEO Score"       value={`${seoScore}/100`} valueClass={scoreColor(seoScore)} />
+          <Metric label="SEO Score"      value={`${seoScore}/100`}  valueClass={scoreColor(seoScore)} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="UX Score"        value={`${uxScore}/100`}  valueClass={scoreColor(uxScore)} />
+          <Metric label="UX Score"       value={`${uxScore}/100`}   valueClass={scoreColor(uxScore)} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="1st Impression"  value={`${result.firstImpression.score}/10`}
+          <Metric label="1st Impression" value={`${result.firstImpression.score}/10`}
             valueClass={impressionColor(result.firstImpression.score)} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="Conversion"      value={`${result.conversionScores.overall}/100`}
+          <Metric label="Conversion"     value={`${result.conversionScores.overall}/100`}
             valueClass={scoreColor(result.conversionScores.overall)} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="Tech Detected"   value={result.techStack.length} />
+          <Metric label="Tech Detected"  value={result.techStack.length} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="Issues"          value={issueCount}
+          <Metric label="Issues"         value={issueCount}
             valueClass={issueCount === 0 ? "text-emerald-400" : issueCount <= 3 ? "text-amber-400" : "text-red-400"} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
-          <Metric label="Page Weight"     value={result.overview.pageLoadHint.charAt(0).toUpperCase() + result.overview.pageLoadHint.slice(1)}
+          <Metric label="Page Weight"    value={result.overview.pageLoadHint.charAt(0).toUpperCase() + result.overview.pageLoadHint.slice(1)}
             valueClass={result.overview.pageLoadHint === "lightweight" ? "text-emerald-400" : result.overview.pageLoadHint === "medium" ? "text-amber-400" : "text-red-400"} />
           {result.pageStats && (
             <>
@@ -124,37 +164,68 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
         </div>
       </div>
 
-      {/* ── Main content ── */}
-      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
-
-        {/* Left col — Identity: what this site is and who it's for */}
-        <div className="flex flex-col gap-3">
-          <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
-          <InsightCard
-            intent={result.intent}
-            biggestOpportunity={result.biggestOpportunity}
-            competitorInsight={result.competitorInsight}
-          />
-          <CustomerViewCard customerView={result.customerView} />
+      {/* ── Tab bar ── */}
+      <div className="sticky top-12 z-10 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-sm">
+        <div className="max-w-[1600px] mx-auto px-4 flex">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? "text-violet-400 border-violet-500"
+                  : "text-zinc-500 border-transparent hover:text-zinc-300 hover:border-zinc-700"
+              }`}
+            >
+              <span className={activeTab === tab.id ? "text-violet-400" : "text-zinc-600"}>{tab.icon}</span>
+              {tab.label}
+              {/* Badge: issue count on Issues tab */}
+              {tab.id === "issues" && issueCount > 0 && (
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.id ? "bg-violet-900/60 text-violet-300" : "bg-zinc-800 text-zinc-500"
+                }`}>
+                  {issueCount}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Middle col — Performance: how well it scores across key dimensions */}
-        <div className="flex flex-col gap-3">
-          <ConversionScoreCard scores={result.conversionScores} />
-          <SeoAuditCard seoChecks={result.seoChecks} />
-          <ConversionCard ux={result.ux} />
-        </div>
+      {/* ── Tab content ── */}
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-5 flex flex-col gap-4">
 
-        {/* Right col — Issues & Actions: what's broken and how to fix it */}
-        <div className="flex flex-col gap-3">
-          <PrioritizedIssuesCard issues={result.prioritizedIssues} />
-          <WeakPointsCard weakPoints={result.weakPoints} />
-          <RecommendationsCard recommendations={result.recommendations} />
-          <TechStackCard techStack={result.techStack} />
-          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
-          {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
-          {result.contentStats && <ContentCard contentStats={result.contentStats} />}
-        </div>
+        {activeTab === "overview" && (
+          <>
+            <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
+            <InsightCard
+              intent={result.intent}
+              biggestOpportunity={result.biggestOpportunity}
+              competitorInsight={result.competitorInsight}
+            />
+            <CustomerViewCard customerView={result.customerView} />
+            {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
+          </>
+        )}
+
+        {activeTab === "audit" && (
+          <>
+            <ConversionScoreCard scores={result.conversionScores} />
+            <SeoAuditCard seoChecks={result.seoChecks} />
+            <ConversionCard ux={result.ux} />
+            <TechStackCard techStack={result.techStack} />
+            {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
+            {result.contentStats && <ContentCard contentStats={result.contentStats} />}
+          </>
+        )}
+
+        {activeTab === "issues" && (
+          <>
+            <PrioritizedIssuesCard issues={result.prioritizedIssues} />
+            <WeakPointsCard weakPoints={result.weakPoints} />
+            <RecommendationsCard recommendations={result.recommendations} />
+          </>
+        )}
 
       </main>
     </div>
