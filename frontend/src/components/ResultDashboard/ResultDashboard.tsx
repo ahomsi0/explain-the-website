@@ -4,7 +4,7 @@ import type { AnalysisResult } from "../../types/analysis";
 import { OverviewCard }          from "../cards/OverviewCard";
 import { TechStackCard }         from "../cards/TechStackCard";
 import { SeoAuditCard }          from "../cards/SeoAuditCard";
-import { ConversionCard }        from "../cards/ConversionCard";
+import { ConversionCard, TrustEngagementCard } from "../cards/ConversionCard";
 import { ConversionScoreCard }   from "../cards/ConversionScoreCard";
 import { WeakPointsCard }        from "../cards/WeakPointsCard";
 import { RecommendationsCard }   from "../cards/RecommendationsCard";
@@ -160,7 +160,10 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
           </div>
           <ConversionScoreCard scores={result.conversionScores} />
           <SeoAuditCard seoChecks={result.seoChecks} />
-          <ConversionCard ux={result.ux} />
+          <div className="grid grid-cols-2 gap-3">
+            <ConversionCard ux={result.ux} />
+            <TrustEngagementCard ux={result.ux} />
+          </div>
         </div>
 
         {/* ── Col 3: Action Plan ── */}
