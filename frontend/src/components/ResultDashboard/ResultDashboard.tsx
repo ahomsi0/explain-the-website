@@ -8,7 +8,7 @@ import { ConversionCard }        from "../cards/ConversionCard";
 import { ConversionScoreCard }   from "../cards/ConversionScoreCard";
 import { WeakPointsCard }        from "../cards/WeakPointsCard";
 import { RecommendationsCard }   from "../cards/RecommendationsCard";
-import { PageStatsCard }         from "../cards/PageStatsCard";
+import { PageStatsCard, PagePerfCard } from "../cards/PageStatsCard";
 import { ContentCard }           from "../cards/ContentCard";
 import { InsightCard }           from "../cards/InsightCard";
 import { CustomerViewCard }      from "../cards/CustomerViewCard";
@@ -155,6 +155,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
         <div className="flex flex-col gap-3">
           <ColHeader label="Performance" description="How well it scores across key dimensions" />
           <TechStackCard techStack={result.techStack} />
+          {result.pageStats && <PagePerfCard pageStats={result.pageStats} />}
           <ConversionScoreCard scores={result.conversionScores} />
           <SeoAuditCard seoChecks={result.seoChecks} />
           <ConversionCard ux={result.ux} />
