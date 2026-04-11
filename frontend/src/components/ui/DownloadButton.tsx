@@ -411,7 +411,7 @@ function buildPDF(result: AnalysisResult) {
       didParseCell(data) {
         if (data.column.index === 1 && data.section === "body") {
           const scores = [cs2.overall, cs2.clarity, cs2.trust, cs2.ctaStrength, cs2.friction];
-          data.cell.styles.textColor = scoreC(scores[data.row.index] ?? 0);
+          data.cell.styles.textColor = rgb(scoreC(scores[data.row.index] ?? 0));
         }
       },
     });
