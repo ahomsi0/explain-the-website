@@ -11,10 +11,11 @@ type TechItem struct {
 
 // SEOCheck represents the result of a single SEO audit check.
 type SEOCheck struct {
-	ID     string `json:"id"`
-	Label  string `json:"label"`
-	Status string `json:"status"` // pass, warning, fail
-	Detail string `json:"detail"`
+	ID      string   `json:"id"`
+	Label   string   `json:"label"`
+	Status  string   `json:"status"`           // pass, warning, fail
+	Detail  string   `json:"detail"`
+	Details []string `json:"details,omitempty"` // optional evidence items shown in expanded view
 }
 
 // Overview contains high-level page metadata.

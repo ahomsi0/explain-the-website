@@ -16,6 +16,7 @@ export interface SEOCheck {
   label: string;
   status: SEOStatus;
   detail: string;
+  details?: string[]; // expandable evidence items
 }
 
 export interface Overview {

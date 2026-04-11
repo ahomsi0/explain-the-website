@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { SEOCheck } from "../../types/analysis";
 
 function statusStyle(s: string) {
@@ -7,17 +8,44 @@ function statusStyle(s: string) {
 }
 
 function CheckRow({ check }: { check: SEOCheck }) {
+  const [open, setOpen] = useState(false);
   const s = statusStyle(check.status);
+  const hasDetails = check.details && check.details.length > 0;
+
   return (
-    <div className="flex items-start gap-2.5 py-2.5 border-b border-zinc-800/60 last:border-0">
-      <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${s.dot}`} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-zinc-200">{check.label}</span>
-          <span className={`text-[10px] font-semibold ${s.label}`}>{s.text}</span>
+    <div className="border-b border-zinc-800/60 last:border-0">
+      <div
+        className={`flex items-start gap-2.5 py-2.5 ${hasDetails ? "cursor-pointer select-none" : ""}`}
+        onClick={() => hasDetails && setOpen((o) => !o)}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${s.dot}`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-zinc-200">{check.label}</span>
+            <span className={`text-[10px] font-semibold ${s.label}`}>{s.text}</span>
+          </div>
+          <p className="text-xs text-zinc-600 mt-0.5 leading-relaxed">{check.detail}</p>
         </div>
-        <p className="text-xs text-zinc-600 mt-0.5 leading-relaxed">{check.detail}</p>
+        {hasDetails && (
+          <svg
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            className={`shrink-0 mt-1 text-zinc-600 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        )}
       </div>
+
+      {hasDetails && open && (
+        <div className="mb-2.5 ml-4 pl-2.5 border-l border-zinc-800 flex flex-col gap-1">
+          {check.details!.map((item, i) => (
+            <span key={i} className="text-[11px] text-zinc-500 leading-relaxed break-all">
+              {item}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
