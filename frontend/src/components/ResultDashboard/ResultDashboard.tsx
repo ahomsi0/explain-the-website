@@ -155,10 +155,10 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
         {/* ── Col 2: Performance ── */}
         <div className="flex flex-col gap-3">
           <ColHeader label="Performance" description="How well it scores across key dimensions" />
+          <TechStackCard techStack={result.techStack} />
           <ConversionScoreCard scores={result.conversionScores} />
           <SeoAuditCard seoChecks={result.seoChecks} />
           <ConversionCard ux={result.ux} />
-          <TechStackCard techStack={result.techStack} />
         </div>
 
         {/* ── Col 3: Action Plan ── */}
