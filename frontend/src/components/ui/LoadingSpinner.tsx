@@ -42,7 +42,7 @@ export function LoadingSpinner({ url }: { url: string }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-6">
-      <div className="w-full max-w-sm flex flex-col gap-8">
+      <div className="w-full max-w-sm flex flex-col items-center gap-8">
 
         {/* Progress ring + percentage */}
         <div className="flex flex-col items-center gap-4">
@@ -70,7 +70,7 @@ export function LoadingSpinner({ url }: { url: string }) {
         </div>
 
         {/* Stage list */}
-        <div className="flex flex-col gap-2 w-fit mx-auto">
+        <div className="flex flex-col gap-2">
           {STAGES.map((stage, i) => {
             const done    = i < stageIdx;
             const current = i === stageIdx;

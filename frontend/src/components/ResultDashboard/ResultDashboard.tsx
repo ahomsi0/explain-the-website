@@ -55,7 +55,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-20 border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 h-12 flex items-center gap-4">
+        <div className="max-w-[1600px] mx-auto px-4 h-12 flex items-center gap-4">
           <div className="flex items-center gap-2 shrink-0">
             <LogoMark size={22} />
             <span className="text-xs font-semibold text-zinc-400 hidden sm:block">Explain This Website</span>
@@ -89,7 +89,7 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
 
       {/* ── Metrics strip ── */}
       <div className="border-b border-zinc-800 bg-zinc-900/40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-5 sm:gap-8 overflow-x-auto scrollbar-none">
+        <div className="max-w-[1600px] mx-auto px-4 py-4 flex items-center gap-5 sm:gap-8 overflow-x-auto scrollbar-none">
           <Metric label="SEO Score"       value={`${seoScore}/100`} valueClass={scoreColor(seoScore)} />
           <Separator orientation="vertical" className="h-8 bg-zinc-800 shrink-0" />
           <Metric label="UX Score"        value={`${uxScore}/100`}  valueClass={scoreColor(uxScore)} />
@@ -125,10 +125,10 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
       </div>
 
       {/* ── Main content ── */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
 
         {/* Left col — Context: what the site is and how it feels to visit */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <OverviewCard overview={result.overview} url={result.url} fetchedAt={result.fetchedAt} />
           <InsightCard
             intent={result.intent}
@@ -136,24 +136,24 @@ export function ResultDashboard({ result, onReset }: { result: AnalysisResult; o
             competitorInsight={result.competitorInsight}
           />
           <CustomerViewCard customerView={result.customerView} />
+          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
         </div>
 
         {/* Middle col — Problems: what's wrong, ranked by impact */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <SeoAuditCard seoChecks={result.seoChecks} />
           <PrioritizedIssuesCard issues={result.prioritizedIssues} />
           <WeakPointsCard weakPoints={result.weakPoints} />
+          <RecommendationsCard recommendations={result.recommendations} />
         </div>
 
-        {/* Right col — Details & Actions: scores, tech, content, and fixes */}
-        <div className="flex flex-col gap-4">
+        {/* Right col — Scores, tech & content details */}
+        <div className="flex flex-col gap-3">
           <ConversionScoreCard scores={result.conversionScores} />
           <ConversionCard ux={result.ux} />
           <TechStackCard techStack={result.techStack} />
           {result.pageStats && <PageStatsCard pageStats={result.pageStats} />}
           {result.contentStats && <ContentCard contentStats={result.contentStats} />}
-          {result.eli5.length > 0 && <ELI5Card items={result.eli5} />}
-          <RecommendationsCard recommendations={result.recommendations} />
         </div>
 
       </main>
