@@ -48,9 +48,9 @@ export function ConversionScoreCard({ scores }: { scores: ConversionScores }) {
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Conversion Readiness</p>
-        <div className="flex items-baseline gap-1.5">
+        <div className="flex items-baseline gap-1">
           <span className={`text-xs font-medium ${overall.text}`}>{overallLabel(scores.overall)}</span>
-          <span className={`text-2xl font-bold ${overall.text}`}>{scores.overall}</span>
+          <span className={`text-sm font-bold ${overall.text}`}>{scores.overall}</span>
           <span className="text-xs text-zinc-600">/100</span>
         </div>
       </div>
