@@ -13,6 +13,9 @@ type techPattern struct {
 	patterns   []string
 	// requireAll: if true ALL patterns must match (AND logic) instead of any one
 	requireAll bool
+	// tagOnly: if true, patterns are only matched inside HTML tag attributes
+	// (src=, href=, action=, data-*) — prevents false positives from marketing copy
+	tagOnly bool
 }
 
 // techPatterns lists all detectable technologies with their HTML fingerprints.
@@ -27,20 +30,21 @@ var techPatterns = []techPattern{
 
 	// Page builders / hosted
 	{name: "Wix", category: "builder", confidence: "high",
-		patterns: []string{"wix.com/", "static.parastorage.com", "wixstatic.com"}},
+		patterns: []string{"static.parastorage.com", "wixstatic.com"}},
 	{name: "Webflow", category: "builder", confidence: "high",
-		patterns: []string{"webflow.com", "data-wf-page", "webflow.js"}},
+		patterns: []string{"data-wf-page", "webflow.js", "assets.website-files.com"}},
 	{name: "Squarespace", category: "builder", confidence: "high",
-		patterns: []string{"squarespace.com", "static.squarespace.com"}},
+		patterns: []string{"static.squarespace.com", "squarespace-cdn.com"}},
 
 	// E-commerce
 	{name: "Shopify", category: "ecommerce", confidence: "high",
-		patterns: []string{"cdn.shopify.com", "shopify.theme", "myshopify.com", "shopify-analytics"}},
+		// cdn.shopify.com/s/files/ is the store asset CDN — only present on actual Shopify stores.
+		// shopifycloud/consent-tracking is loaded by Shopify partners/integrators, NOT stores — excluded.
+		patterns: []string{"cdn.shopify.com/s/files/", "window.shopify.theme", "shopify_analytics.js", "myshopify.com/cart"}},
 	{name: "WooCommerce", category: "ecommerce", confidence: "high",
-		// Require both a WooCommerce-specific JS signal AND a WordPress path to avoid false positives
-		patterns: []string{"woocommerce", "/wc-api/", "wc_add_to_cart", "wc-block"}},
+		patterns: []string{"/wc-api/", "wc_add_to_cart", "wc-block", "woocommerce-js"}},
 	{name: "BigCommerce", category: "ecommerce", confidence: "high",
-		patterns: []string{"bigcommerce.com", "bigcommercecdn.com"}},
+		patterns: []string{"bigcommercecdn.com", "cdn11.bigcommerce.com"}},
 	{name: "Magento", category: "ecommerce", confidence: "high",
 		patterns: []string{"x-magento-init", "mage/bootstrap", "mage.cookies", "mage-init"}},
 
@@ -176,9 +180,9 @@ var techPatterns = []techPattern{
 	{name: "OpenCart", category: "ecommerce", confidence: "high",
 		patterns: []string{"catalog/view/theme", "opencart.com", "route=common/home"}},
 	{name: "Ecwid", category: "ecommerce", confidence: "high",
-		patterns: []string{"ecwid.com/script", "app.ecwid.com", "ecwid_script"}},
+		patterns: []string{"app.ecwid.com", "ecwid_script", "ecwid.com/script.js"}},
 	{name: "Gumroad", category: "ecommerce", confidence: "high",
-		patterns: []string{"gumroad.com/js/", "gumroad.js"}},
+		patterns: []string{"gumroad.com/js/", "assets.gumroad.com"}},
 	{name: "Snipcart", category: "ecommerce", confidence: "high",
 		patterns: []string{"snipcart.nuxtjs.org", "cdn.snipcart.com"}},
 	{name: "Paddle", category: "ecommerce", confidence: "high",
@@ -296,9 +300,9 @@ var techPatterns = []techPattern{
 
 	// Additional CDN/Hosting
 	{name: "GitHub Pages", category: "cdn", confidence: "medium",
-		patterns: []string{"github.io"}},
+		patterns: []string{".github.io/"}},
 	{name: "Render", category: "cdn", confidence: "medium",
-		patterns: []string{"onrender.com"}},
+		patterns: []string{".onrender.com"}},
 	{name: "Cloudflare Pages", category: "cdn", confidence: "high",
 		patterns: []string{"pages.cloudflare.com", "pages.dev"}},
 	{name: "Supabase Storage", category: "cdn", confidence: "high",
