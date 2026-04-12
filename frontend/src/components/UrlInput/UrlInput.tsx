@@ -21,20 +21,25 @@ export function UrlInput({ onAnalyze, isLoading }: { onAnalyze: (url: string) =>
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate aria-label="Website analyzer">
+      {/* Visually hidden label keeps the input accessible to screen readers */}
+      <label htmlFor="url-input" className="sr-only">Website URL to analyze</label>
       <div className={`flex items-center rounded-lg border transition-colors ${
         error ? "border-red-500/50" : "border-zinc-700 focus-within:border-zinc-500"
       } bg-zinc-900`}>
-        <svg className="ml-3.5 shrink-0 text-zinc-600" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="ml-3.5 shrink-0 text-zinc-600" aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
         </svg>
         <input
+          id="url-input"
           type="url"
           value={value}
           onChange={(e) => { setValue(e.target.value); setError(""); }}
           placeholder="Enter a URL to analyze..."
           disabled={isLoading}
+          aria-invalid={!!error}
+          aria-describedby={error ? "url-error" : undefined}
           className="flex-1 px-3 py-3.5 text-[16px] sm:text-sm bg-transparent text-zinc-100 placeholder-zinc-600 focus:outline-none disabled:opacity-50"
           autoComplete="url"
           spellCheck={false}
@@ -49,7 +54,7 @@ export function UrlInput({ onAnalyze, isLoading }: { onAnalyze: (url: string) =>
           {isLoading ? "Analyzing…" : "Analyze"}
         </button>
       </div>
-      {error && <p className="mt-2 text-xs text-red-400 pl-1">{error}</p>}
+      {error && <p id="url-error" role="alert" className="mt-2 text-xs text-red-400 pl-1">{error}</p>}
     </form>
   );
 }

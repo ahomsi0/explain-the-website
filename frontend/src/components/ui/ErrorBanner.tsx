@@ -1,6 +1,6 @@
 export function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 gap-4">
+    <div role="alert" aria-live="assertive" className="flex flex-col items-center justify-center min-h-screen px-4 gap-4">
       <p className="text-sm font-medium text-zinc-200">Analysis failed</p>
       <p className="text-sm text-zinc-600 max-w-sm text-center leading-relaxed">{message}</p>
       <button
