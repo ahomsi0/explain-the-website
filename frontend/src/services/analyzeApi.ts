@@ -2,6 +2,16 @@ import type { AnalysisResult } from "../types/analysis";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
+export async function waitForServerSignal(): Promise<void> {
+  const response = await fetch(`${API_URL}/api/health`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Analysis server is unavailable (${response.status})`);
+  }
+}
+
 export async function analyzeWebsite(url: string): Promise<AnalysisResult> {
   const response = await fetch(`${API_URL}/api/analyze`, {
     method: "POST",

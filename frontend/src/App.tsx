@@ -7,7 +7,7 @@ import { ResultDashboard } from "./components/ResultDashboard/ResultDashboard";
 import { LogoWordmark } from "./components/ui/Logo";
 
 export default function App() {
-  const { status, result, error, analyze, reset } = useAnalysis();
+  const { status, result, error, serverSignaled, analyze, reset } = useAnalysis();
   const [currentUrl, setCurrentUrl] = useState("");
 
   const handleAnalyze = (url: string) => { setCurrentUrl(url); analyze(url); };
@@ -52,7 +52,7 @@ export default function App() {
         </div>
       )}
 
-      {status === "loading" && <LoadingSpinner url={currentUrl} />}
+      {status === "loading" && <LoadingSpinner url={currentUrl} serverSignaled={serverSignaled} />}
 
       {status === "error" && (
         <ErrorBanner

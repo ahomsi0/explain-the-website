@@ -1,32 +1,38 @@
 import { useEffect, useState } from "react";
 
 const STAGES = [
-  { label: "Fetching page",                  pct: 8  },
-  { label: "Scanning page structure",        pct: 20 },
-  { label: "Checking SEO signals",           pct: 34 },
-  { label: "Detecting technologies",         pct: 48 },
-  { label: "Evaluating UX & conversion",     pct: 62 },
-  { label: "Measuring trust signals",        pct: 74 },
-  { label: "Building site intelligence",     pct: 84 },
-  { label: "Prioritizing issues",            pct: 92 },
-  { label: "Finalizing report",              pct: 98 },
+  { label: "Initializing analysis engine...", pct: 8  },
+  { label: "Fetching website data...",        pct: 20 },
+  { label: "Analyzing structure & SEO...",    pct: 34 },
+  { label: "Detecting technologies...",       pct: 48 },
+  { label: "Evaluating UX & conversion...",   pct: 62 },
+  { label: "Assessing trust & clarity...",    pct: 74 },
+  { label: "Prioritizing insights...",        pct: 92 },
+  { label: "Finalizing report...",            pct: 98 },
 ];
 
 const STAGE_DURATION = 900; // ms per stage
 
-export function LoadingSpinner({ url }: { url: string }) {
+export function LoadingSpinner({ url, serverSignaled }: { url: string; serverSignaled: boolean }) {
   const [stageIdx, setStageIdx] = useState(0);
   const [displayPct, setDisplayPct] = useState(0);
   const [isSlow, setIsSlow] = useState(false);
 
-  // Advance through stages
+  // Advance through stages. The first step only completes after a backend signal.
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    STAGES.forEach((_, i) => {
-      timers.push(setTimeout(() => setStageIdx(i), i * STAGE_DURATION));
-    });
-    return () => timers.forEach(clearTimeout);
-  }, []);
+    const finalStage = STAGES.length - 1;
+    if (stageIdx >= finalStage) return;
+
+    if (stageIdx === 0 && !serverSignaled) {
+      return;
+    }
+
+    const t = setTimeout(() => {
+      setStageIdx((prev) => Math.min(prev + 1, finalStage));
+    }, stageIdx === 0 ? 0 : STAGE_DURATION);
+
+    return () => clearTimeout(t);
+  }, [stageIdx, serverSignaled]);
 
   // Smoothly animate the progress percentage
   useEffect(() => {
