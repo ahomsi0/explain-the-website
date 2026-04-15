@@ -2,7 +2,7 @@
 
 Paste any URL and get an instant analysis report covering tech stack detection, SEO audit, UX/conversion signals, page performance stats, content analysis, weak points, and actionable recommendations. Results can be exported as a PDF report.
 
-**Live:** [explainthewebsite.vercel.app](https://explainthewebsite.vercel.app)
+**Live:** [explain-this-website.vercel.app](https://explain-this-website.vercel.app/)
 
 ---
 

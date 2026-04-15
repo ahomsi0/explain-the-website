@@ -50,12 +50,12 @@
   <text x="980" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="800" fill="#f4f4f5" text-anchor="middle">87</text>
   <text x="980" y="278" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#52525b" text-anchor="middle">/100</text>
   <line x1="850" y1="305" x2="1110" y2="305" stroke="#27272a" stroke-width="1"/>
-  <text x="860" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">✓  HTTPS enabled</text>
-  <text x="860" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">✓  Meta description</text>
-  <text x="860" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">✓  Open Graph tags</text>
-  <text x="860" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#ef4444">✗  No canonical URL</text>
-  <text x="860" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#f59e0b">⚠  Missing hreflang</text>
-  <text x="860" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">✓  Viewport tag</text>
+  <text x="860" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">OK  HTTPS enabled</text>
+  <text x="860" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">OK  Meta description</text>
+  <text x="860" y="385" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">OK  Open Graph tags</text>
+  <text x="860" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#ef4444">NO  No canonical URL</text>
+  <text x="860" y="435" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#f59e0b">WARN  Missing hreflang</text>
+  <text x="860" y="460" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#71717a">OK  Viewport tag</text>
 
   <!-- URL badge bottom right -->
   <text x="1120" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#3f3f46" text-anchor="end">explainthewebsite.vercel.app</text>

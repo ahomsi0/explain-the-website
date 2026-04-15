@@ -49,7 +49,7 @@ export function OverviewCard({ overview, url, fetchedAt, aiDetection }: {
         )}
         {aiDetection?.isAIBuilt && (
           <span className="text-[11px] font-medium px-2 py-0.5 rounded border border-violet-800 text-violet-400 bg-violet-950 flex items-center gap-1">
-            <span>🤖</span>
+            <span className="text-[10px] font-semibold uppercase">AI</span>
             <span>{aiDetection.builder ? `Built with ${aiDetection.builder}` : "AI-assisted"}</span>
             {aiDetection.confidence === "medium" && <span className="text-violet-600">?</span>}
           </span>

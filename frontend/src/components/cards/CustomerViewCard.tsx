@@ -48,7 +48,7 @@ function Pill({ label, active }: { label: string; active: boolean }) {
         ? "bg-emerald-950 text-emerald-400 border-emerald-800"
         : "bg-red-950 text-red-400 border-red-800"
     }`}>
-      {active ? "✓" : "✗"} {label}
+      {active ? "Yes" : "No"} - {label}
     </span>
   );
 }

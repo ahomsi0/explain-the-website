@@ -1,14 +1,14 @@
 import type { IntentSummary } from "../../types/analysis";
 
 const categoryIcon: Record<string, string> = {
-  ecommerce:  "🛒",
-  saas:       "⚡",
-  portfolio:  "🎨",
-  blog:       "✍️",
-  landing:    "🎯",
-  service:    "🤝",
-  corporate:  "🏢",
-  general:    "🌐",
+  ecommerce:  "EC",
+  saas:       "SA",
+  portfolio:  "PF",
+  blog:       "BL",
+  landing:    "LD",
+  service:    "SV",
+  corporate:  "CO",
+  general:    "GN",
 };
 
 export function InsightCard({
@@ -20,7 +20,7 @@ export function InsightCard({
   biggestOpportunity: string;
   competitorInsight: string;
 }) {
-  const icon = categoryIcon[intent.category] ?? "🌐";
+  const icon = categoryIcon[intent.category] ?? "GN";
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 flex flex-col gap-4">
@@ -29,7 +29,9 @@ export function InsightCard({
       {/* Intent */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-2">
-          <span className="text-base leading-none">{icon}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border border-zinc-700 text-zinc-300 bg-zinc-800">
+            {icon}
+          </span>
           <span className="text-sm font-semibold text-zinc-100">{intent.label}</span>
         </div>
         <p className="text-xs text-zinc-500 leading-relaxed">{intent.description}</p>
