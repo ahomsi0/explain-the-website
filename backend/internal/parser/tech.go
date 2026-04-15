@@ -94,16 +94,17 @@ var techPatterns = []techPattern{
 	// it produced false positives on Shopify, Astro, and any framework that serves
 	// assets from /assets/ with modulepreload. The medium/high rules above are sufficient.
 	// Vue — file references tagOnly; runtime globals don't need restriction.
-	{name: "Vue", category: "framework", confidence: "medium",
+	// All Vue signals are specific enough to warrant high confidence.
+	{name: "Vue", category: "framework", confidence: "high",
 		tagOnly: true,
 		patterns: []string{"vue.min.js", "vue@"}},
-	{name: "Vue", category: "framework", confidence: "medium",
+	{name: "Vue", category: "framework", confidence: "high",
 		patterns: []string{"vue.runtime", "__vue__"}},
-	// Angular — file reference tagOnly; ng-version and module paths are specific enough.
-	{name: "Angular", category: "framework", confidence: "medium",
+	// Angular — ng-version is injected by Angular into the root element, highly specific.
+	{name: "Angular", category: "framework", confidence: "high",
 		tagOnly: true,
 		patterns: []string{"angular.min.js"}},
-	{name: "Angular", category: "framework", confidence: "medium",
+	{name: "Angular", category: "framework", confidence: "high",
 		patterns: []string{"ng-version", "angular/core"}},
 	{name: "Svelte", category: "framework", confidence: "high",
 		patterns: []string{"__svelte", "svelte/"}},
@@ -130,7 +131,9 @@ var techPatterns = []techPattern{
 	{name: "Intercom", category: "analytics", confidence: "high",
 		patterns: []string{"widget.intercom.io", "intercomSettings"}},
 	{name: "Segment", category: "analytics", confidence: "high",
-		patterns: []string{"cdn.segment.com", "segment.io", "analytics.identify(", "analytics.track("}},
+		// analytics.identify( and analytics.track( removed — too generic, any custom
+		// analytics wrapper can use these method names.
+		patterns: []string{"cdn.segment.com", "segment.io/analytics"}},
 	{name: "Mixpanel", category: "analytics", confidence: "high",
 		patterns: []string{"cdn.mxpnl.com", "mixpanel.com/libs", "mixpanel.init"}},
 	{name: "Klaviyo", category: "analytics", confidence: "high",
@@ -139,8 +142,9 @@ var techPatterns = []techPattern{
 		patterns: []string{"pardot.com", "sfdcstatic.com", "force.com/resource"}},
 	{name: "Zendesk", category: "analytics", confidence: "high",
 		patterns: []string{"zdassets.com", "zendeskcdn.com", "static.zdassets.com"}},
-	{name: "Stripe", category: "analytics", confidence: "high",
-		patterns: []string{"js.stripe.com", "stripe.network", "stripe-js"}},
+	{name: "Stripe", category: "ecommerce", confidence: "high",
+		// stripe.network removed — too generic; js.stripe.com and stripe-js are definitive.
+		patterns: []string{"js.stripe.com", "stripe-js"}},
 	{name: "Crisp Chat", category: "analytics", confidence: "high",
 		patterns: []string{"client.crisp.chat", "crisp.chat/js"}},
 	{name: "Tawk.to", category: "analytics", confidence: "high",
@@ -163,12 +167,13 @@ var techPatterns = []techPattern{
 		patterns: []string{"cdn.jsdelivr.net"}},
 
 	// UI Frameworks
-	// Bootstrap and jQuery file names are frequently cited in tutorials and
-	// download guides — restrict to tag attributes to avoid body-text false positives.
-	{name: "Bootstrap", category: "framework", confidence: "medium",
+	// Bootstrap and jQuery file names are restricted to tag attributes (tagOnly) to
+	// avoid body-text false positives from tutorials/docs. When found in actual tags
+	// (src=, href=) they are definitive — high confidence is appropriate.
+	{name: "Bootstrap", category: "framework", confidence: "high",
 		tagOnly: true,
 		patterns: []string{"bootstrap.min.css", "bootstrap.min.js", "bootstrap@"}},
-	{name: "jQuery", category: "framework", confidence: "medium",
+	{name: "jQuery", category: "framework", confidence: "high",
 		tagOnly: true,
 		patterns: []string{"jquery.min.js", "jquery-", "/jquery/"}},
 	{name: "Tailwind CSS", category: "framework", confidence: "medium",
@@ -266,7 +271,9 @@ var techPatterns = []techPattern{
 	{name: "PostHog", category: "analytics", confidence: "high",
 		patterns: []string{"posthog.com/static", "posthog.init(", "app.posthog.com"}},
 	{name: "Plausible", category: "analytics", confidence: "high",
-		patterns: []string{"plausible.io/js/", "data-domain"}},
+		// requireAll: both must match — data-domain alone is a generic HTML attribute
+		// that appears on many elements unrelated to Plausible.
+		patterns: []string{"plausible.io/js/", "data-domain"}, requireAll: true},
 	{name: "Matomo", category: "analytics", confidence: "high",
 		patterns: []string{"matomo.js", "piwik.js", "_paq.push"}},
 	{name: "Microsoft Clarity", category: "analytics", confidence: "high",
@@ -652,8 +659,12 @@ func computeTechScore(p techPattern, signals []matchedSignal) int {
 		score = 39
 	}
 
-	// Vite broad bundle heuristic should remain low confidence.
-	if p.name == "Vite" && p.requireAll && score > 39 {
+	// Enforce declared confidence ceiling so that a "medium" pattern never
+	// accidentally scores into "high" territory just because it matched many signals.
+	if p.confidence == "medium" && score > 69 {
+		score = 69
+	}
+	if p.confidence == "low" && score > 39 {
 		score = 39
 	}
 
@@ -722,8 +733,14 @@ func isExplicitSignal(p string) bool {
 		return true
 	}
 
-	// Unique vendor asset domains are explicit fingerprints.
-	for _, suffix := range []string{".com/", ".net/", ".io/", ".app/", ".dev/", ".co/", ".org/"} {
+	// Minified file names are definitive (bootstrap.min.css, jquery.min.js, etc.)
+	if strings.Contains(p, ".min.js") || strings.Contains(p, ".min.css") || strings.Contains(p, ".bundle.js") {
+		return true
+	}
+
+	// Vendor domain or subdomain — explicit fingerprint even without a URL path.
+	// e.g. "static.klaviyo.com", "cloudfront.net", "akamaihd.net"
+	for _, suffix := range []string{".com", ".net", ".io", ".app", ".dev", ".co", ".org"} {
 		if strings.Contains(p, suffix) {
 			return true
 		}
