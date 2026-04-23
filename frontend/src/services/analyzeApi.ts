@@ -43,17 +43,24 @@ export async function analyzeWebsite(
         signal: controller.signal,
       });
 
-      // We got a real HTTP response — server is up.
-      if (!serverReachedFired) {
-        serverReachedFired = true;
-        onServerReached?.();
-      }
-
       let data: { error?: string } | undefined;
       try { data = await response.json(); } catch { /* not valid JSON */ }
 
       if (!response.ok) {
+        // Real application error from the Go server — don't retry.
         throw new Error(data?.error ?? `Server error (${response.status})`);
+      }
+
+      if (!data) {
+        // 200 OK but no valid JSON — likely Render's proxy "waking up" page.
+        // Treat as transient and retry.
+        throw new TypeError("Non-JSON response — server not ready yet");
+      }
+
+      // We have a real successful response from the Go server.
+      if (!serverReachedFired) {
+        serverReachedFired = true;
+        onServerReached?.();
       }
 
       return data as AnalysisResult;

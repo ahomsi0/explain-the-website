@@ -43,11 +43,13 @@ export function LoadingSpinner({ url, serverSignaled }: { url: string; serverSig
     return () => clearTimeout(t);
   }, [stageIdx, displayPct]);
 
-  // Show a friendly reassurance for slow/protected websites.
+  // Show a friendly reassurance for slow/protected websites —
+  // but only after the server has responded (i.e. not during cold-start).
   useEffect(() => {
+    if (!serverSignaled) return;
     const t = setTimeout(() => setIsSlow(true), 10000);
     return () => clearTimeout(t);
-  }, []);
+  }, [serverSignaled]);
 
   const hostname = (() => {
     try { return new URL(url).hostname; } catch { return url; }
