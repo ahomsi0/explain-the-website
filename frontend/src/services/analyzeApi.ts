@@ -1,49 +1,81 @@
 import type { AnalysisResult } from "../types/analysis";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
-const HEALTH_TIMEOUT_MS = 2500;
 
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
+// How long to wait for the server in total (covers Render cold-starts which can take 60-90s).
+const TOTAL_TIMEOUT_MS = 120_000;
+
+// How long a single attempt is allowed before we retry (handles flaky wakeups).
+const ATTEMPT_TIMEOUT_MS = 15_000;
+
+// Delay between retries when the attempt itself fails (network error, not a slow response).
+const RETRY_DELAY_MS = 2_000;
+
+function isNetworkError(err: unknown): boolean {
+  // TypeError is thrown by fetch on network failure / CORS block.
+  return err instanceof TypeError;
 }
 
-export async function waitForServerSignal(timeoutMs = HEALTH_TIMEOUT_MS): Promise<void> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+export async function analyzeWebsite(
+  url: string,
+  onServerReached?: () => void,
+): Promise<AnalysisResult> {
+  const deadline = Date.now() + TOTAL_TIMEOUT_MS;
+  let serverReachedFired = false;
 
-  let response: Response;
-  try {
-    response = await fetch(`${API_URL}/api/health`, {
-      method: "GET",
-      signal: controller.signal,
-    });
-  } catch (error) {
-    if (isAbortError(error)) {
-      throw new Error(`Analysis server did not respond in time. Make sure backend is running at ${API_URL}.`);
+  while (true) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error(
+        `Analysis server did not respond in time. Make sure backend is running at ${API_URL}.`,
+      );
     }
-    throw new Error(`Could not reach analysis server at ${API_URL}.`);
-  } finally {
-    clearTimeout(timer);
+
+    const controller = new AbortController();
+    const timeoutMs = Math.min(ATTEMPT_TIMEOUT_MS, remaining);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(`${API_URL}/api/analyze`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+        signal: controller.signal,
+      });
+
+      // We got a real HTTP response — server is up.
+      if (!serverReachedFired) {
+        serverReachedFired = true;
+        onServerReached?.();
+      }
+
+      let data: { error?: string } | undefined;
+      try { data = await response.json(); } catch { /* not valid JSON */ }
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? `Server error (${response.status})`);
+      }
+
+      return data as AnalysisResult;
+    } catch (err) {
+      // If it's an application-level error (from the throw above), don't retry.
+      if (!isNetworkError(err) && !(err instanceof DOMException)) {
+        throw err;
+      }
+
+      // Network error or timeout — wait a bit then retry if deadline allows.
+      const retryRemaining = deadline - Date.now();
+      if (retryRemaining <= 0) {
+        throw new Error(
+          `Analysis server did not respond in time. Make sure backend is running at ${API_URL}.`,
+        );
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.min(RETRY_DELAY_MS, retryRemaining)),
+      );
+    } finally {
+      clearTimeout(timer);
+    }
   }
-
-  if (!response.ok) {
-    throw new Error(`Analysis server is unavailable (${response.status})`);
-  }
-}
-
-export async function analyzeWebsite(url: string): Promise<AnalysisResult> {
-  const response = await fetch(`${API_URL}/api/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url }),
-  });
-
-  let data: { error?: string } | undefined;
-  try { data = await response.json(); } catch { /* response body wasn't valid JSON */ }
-
-  if (!response.ok) {
-    throw new Error(data?.error ?? `Server error (${response.status})`);
-  }
-
-  return data as AnalysisResult;
 }

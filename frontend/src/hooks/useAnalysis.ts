@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import type { AnalysisResult, AnalysisStatus } from "../types/analysis";
-import { analyzeWebsite, waitForServerSignal } from "../services/analyzeApi";
+import { analyzeWebsite } from "../services/analyzeApi";
 import { mockAnalysisResult } from "../mock/mockData";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
@@ -35,10 +35,11 @@ export function useAnalysis(): UseAnalysisReturn {
         await new Promise((resolve) => setTimeout(resolve, 1400));
         data = { ...mockAnalysisResult, url };
       } else {
-        // Preflight: fail fast if backend is down before starting analysis.
-        await waitForServerSignal();
-        setServerSignaled(true);
-        data = await analyzeWebsite(url);
+        // Go straight to the analysis request — no separate health preflight.
+        // Render holds the TCP connection while waking the service, so the
+        // fetch naturally waits. onServerReached fires the moment we get any
+        // HTTP response back, advancing the loading spinner.
+        data = await analyzeWebsite(url, () => setServerSignaled(true));
       }
 
       setResult(data);
